@@ -11,6 +11,7 @@ import {
   Pause,
   Play,
   RotateCcw,
+  Pencil,
   Shuffle,
   SkipBack,
   SkipForward,
@@ -18,7 +19,9 @@ import {
 } from "lucide-react";
 
 import { ALGORITHMS, getAlgorithm } from "@/lib/algorithms";
-import { buildInput, usesArrayControls } from "@/lib/engine/input";
+import { buildInput, isEditableGraph, usesArrayControls } from "@/lib/engine/input";
+import { defaultCustomGraph, sanitizeGraph } from "@/lib/engine/graph-edit";
+import { GraphEditor } from "./graph-editor";
 import { useAppStore } from "@/lib/store/app-store";
 import { Card } from "@/components/ui/primitives";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -36,6 +39,9 @@ export function Visualizer({ slug }: { slug: string }) {
   // server/client boundary — an Algorithm carries a generate() function, which
   // is not serializable.
   const algorithm = getAlgorithm(slug)!;
+  const editable = isEditableGraph(algorithm);
+  const [editing, setEditing] = React.useState(false);
+  const workingGraph = sanitizeGraph(settings.customGraph) ?? defaultCustomGraph();
 
   const frames = React.useMemo(
     () => algorithm.generate(buildInput(algorithm, settings)),
@@ -147,10 +153,28 @@ export function Visualizer({ slug }: { slug: string }) {
           </div>
 
           <Card className="mt-5 p-5 sm:p-7">
-            <Stage frame={frame} animation={settings.animation} />
-            <div className="mt-6">
-              <Legend items={algorithm.legend} />
-            </div>
+            {editing ? (
+              <>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-[17px] font-bold text-[var(--text)]">Edit the graph</h2>
+                    <p className="mt-0.5 text-[13.5px] text-[var(--text-muted)]">
+                      Every change re-runs Dijkstra immediately. Your graph is saved in this browser.
+                    </p>
+                  </div>
+                  <Button onClick={() => setEditing(false)}>
+                    <Play className="h-[18px] w-[18px]" />
+                    Run the visualization
+                  </Button>
+                </div>
+                <GraphEditor graph={workingGraph} onChange={(g) => setSettings({ customGraph: g })} />
+              </>
+            ) : (
+              <>
+                <Stage frame={frame} animation={settings.animation} />
+                <div className="mt-6">
+                  <Legend items={algorithm.legend} />
+                </div>
 
             {/* transport */}
             <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
@@ -192,12 +216,20 @@ export function Visualizer({ slug }: { slug: string }) {
                     New array
                   </Button>
                 ) : null}
+                {editable ? (
+                  <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+                    <Pencil className="h-4 w-4" />
+                    Edit graph
+                  </Button>
+                ) : null}
                 <ButtonLink href="/settings" variant="ghost" size="sm">
                   <Sliders className="h-4 w-4" />
                   Controls
                 </ButtonLink>
               </div>
             </div>
+              </>
+            )}
           </Card>
 
           {/* metrics */}

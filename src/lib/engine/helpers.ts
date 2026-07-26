@@ -1,4 +1,4 @@
-import type { GraphEdge, GraphNode, MarkKind } from "./types";
+import type { GraphSpec, MarkKind } from "./types";
 
 export function filled(n: number, kind: MarkKind = "idle"): MarkKind[] {
   return Array.from({ length: n }, () => kind);
@@ -52,15 +52,7 @@ export function buildArray(size: number, preset: ArrayPreset, seed = 42, max = 6
 
 /* ------------------------------ Graph presets --------------------------- */
 
-export interface GraphPreset {
-  id: string;
-  label: string;
-  directed: boolean;
-  weighted: boolean;
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-  start: string;
-}
+export type GraphPreset = GraphSpec;
 
 export const GRAPH_PRESETS: GraphPreset[] = [
   {

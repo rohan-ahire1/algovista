@@ -63,6 +63,24 @@ Run `pnpm verify` afterwards: the harness runs each generator across sizes and i
 asserts the final frame actually holds the right answer (sorted array, correct shortest-path
 distances, valid topological order, correct Fibonacci value, and so on).
 
+### Editing the graph
+
+Dijkstra's visualizer has an **Edit graph** mode (`src/components/viz/graph-editor.tsx`). You can add
+nodes by clicking the canvas, drag them to reposition, connect pairs, edit or delete edge weights,
+and pick which node is the source. Every edit re-runs the algorithm immediately.
+
+All mutations go through `src/lib/engine/graph-edit.ts`, which keeps the graph in a state the
+algorithm can always run on: unique ids, no self-loops or duplicate edges, non-negative weights
+(Dijkstra's precondition), and a source that still exists. `sanitizeGraph` repairs anything a stale
+or hand-edited cookie could contain. Limits are 12 nodes and 26 edges — chosen so the worst case
+still fits comfortably inside the 4KB cookie.
+
+Disconnected nodes are allowed and flagged, not blocked: Dijkstra correctly leaves them at ∞, and
+the editor explains that rather than preventing it.
+
+`AlgoInput` carries an optional `graph`, so any graph algorithm can accept a custom graph — only
+Dijkstra exposes the editor today (gated by `isEditableGraph` in `src/lib/engine/input.ts`).
+
 ### State
 
 There are no accounts. Settings and progress live in two cookies (`av_settings`, `av_progress`)

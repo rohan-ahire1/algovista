@@ -1,4 +1,5 @@
 import type { ArrayPreset } from "../engine/helpers";
+import type { GraphSpec } from "../engine/types";
 
 export const SETTINGS_COOKIE = "av_settings";
 export const PROGRESS_COOKIE = "av_progress";
@@ -13,6 +14,8 @@ export interface Settings {
   animation: AnimationStyle;
   preset: ArrayPreset;
   seed: number;
+  /** A user-edited graph for the weighted-graph visualizer. null = use the preset. */
+  customGraph: GraphSpec | null;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -22,6 +25,7 @@ export const DEFAULT_SETTINGS: Settings = {
   animation: "smooth",
   preset: "random",
   seed: 42,
+  customGraph: null,
 };
 
 export interface ActivityEntry {

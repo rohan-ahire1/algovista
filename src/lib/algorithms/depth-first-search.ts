@@ -1,5 +1,5 @@
 import type { Algorithm } from "../engine/algorithm";
-import type { Frame, GraphView, MarkKind } from "../engine/types";
+import type { Frame, GraphSpec, GraphView, MarkKind } from "../engine/types";
 import { adjacency, edgeKey, getGraph } from "../engine/helpers";
 
 const PSEUDOCODE = `procedure DFS(graph, node, visited)
@@ -12,8 +12,8 @@ const PSEUDOCODE = `procedure DFS(graph, node, visited)
     end for
 end procedure`;
 
-function generate({ graphId, start }: { graphId?: string; start?: string }): Frame[] {
-  const g = getGraph(graphId ?? "traversal");
+function generate({ graphId, graph, start }: { graphId?: string; graph?: GraphSpec; start?: string }): Frame[] {
+  const g = graph ?? getGraph(graphId ?? "traversal");
   const adj = adjacency(g);
   const source = start ?? g.start;
 

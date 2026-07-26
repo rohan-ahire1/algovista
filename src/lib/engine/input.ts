@@ -1,6 +1,7 @@
 import type { Algorithm } from "./algorithm";
 import type { AlgoInput } from "./types";
 import { buildArray } from "./helpers";
+import { sanitizeGraph } from "./graph-edit";
 import type { Settings } from "../store/schema";
 
 /**
@@ -23,12 +24,22 @@ export function buildInput(algorithm: Algorithm, settings: Settings): AlgoInput 
     }
 
     case "graph":
-    case "graph-weighted":
       return {
         array: [],
         graphId: algorithm.defaultInput?.graphId,
         start: algorithm.defaultInput?.start,
       };
+
+    case "graph-weighted": {
+      // A graph the user has edited replaces the built-in preset entirely.
+      const custom = sanitizeGraph(settings.customGraph);
+      return {
+        array: [],
+        graphId: algorithm.defaultInput?.graphId,
+        graph: custom ?? undefined,
+        start: custom?.start ?? algorithm.defaultInput?.start,
+      };
+    }
 
     case "number":
       return { array: [], n: algorithm.defaultInput?.n ?? Math.max(3, Math.min(8, Math.round(size / 2))) };
@@ -40,4 +51,8 @@ export function buildInput(algorithm: Algorithm, settings: Settings): AlgoInput 
 
 export function usesArrayControls(algorithm: Algorithm) {
   return algorithm.inputKind === "array" || algorithm.inputKind === "array-target";
+}
+
+export function isEditableGraph(algorithm: Algorithm) {
+  return algorithm.inputKind === "graph-weighted";
 }

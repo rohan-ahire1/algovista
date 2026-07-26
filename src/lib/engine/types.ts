@@ -117,6 +117,19 @@ export interface AlgoInput {
   array: number[];
   target?: number;
   graphId?: string;
+  /** A user-edited graph, which takes precedence over graphId. */
+  graph?: GraphSpec;
   start?: string;
   n?: number;
+}
+
+/** A complete graph definition — the built-in presets and user-edited graphs share this shape. */
+export interface GraphSpec {
+  id: string;
+  label: string;
+  directed: boolean;
+  weighted: boolean;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  start: string;
 }

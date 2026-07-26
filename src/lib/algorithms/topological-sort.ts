@@ -1,5 +1,5 @@
 import type { Algorithm } from "../engine/algorithm";
-import type { Frame, GraphView, MarkKind } from "../engine/types";
+import type { Frame, GraphSpec, GraphView, MarkKind } from "../engine/types";
 import { adjacency, edgeKey, getGraph } from "../engine/helpers";
 
 const PSEUDOCODE = `procedure topologicalSort(graph)
@@ -20,8 +20,8 @@ const PSEUDOCODE = `procedure topologicalSort(graph)
     return order
 end procedure`;
 
-function generate({ graphId }: { graphId?: string }): Frame[] {
-  const g = getGraph(graphId ?? "dag");
+function generate({ graphId, graph }: { graphId?: string; graph?: GraphSpec }): Frame[] {
+  const g = graph ?? getGraph(graphId ?? "dag");
   const adj = adjacency(g);
   const frames: Frame[] = [];
 

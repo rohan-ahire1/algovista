@@ -9,7 +9,8 @@ import { ALGORITHMS } from "../src/lib/algorithms/index";
 import { buildInput } from "../src/lib/engine/input";
 import { DEFAULT_SETTINGS } from "../src/lib/store/schema";
 import { adjacency, getGraph, type ArrayPreset } from "../src/lib/engine/helpers";
-import type { ArrayView, GraphView, TreeView } from "../src/lib/engine/types";
+import type { ArrayView, GraphSpec, GraphView, TreeView } from "../src/lib/engine/types";
+import { addEdge, addNode, defaultCustomGraph, unreachableNodes } from "../src/lib/engine/graph-edit";
 
 const PRESETS: ArrayPreset[] = ["random", "sorted", "reversed", "nearly-sorted", "few-unique"];
 const SIZES = [5, 8, 13, 20];
@@ -136,6 +137,76 @@ for (const algorithm of ALGORITHMS) {
 
   console.log(`✓ ${algorithm.name.padEnd(22)} ${cases} case${cases === 1 ? "" : "s"}`);
 }
+
+/* ------------------------------------------------------------------ *
+ * User-edited graphs: Dijkstra must stay correct on graphs the editor
+ * can produce, including disconnected ones.
+ * ------------------------------------------------------------------ */
+
+function referenceDijkstra(graph: GraphSpec) {
+  const adj = adjacency(graph);
+  const dist: Record<string, number> = {};
+  graph.nodes.forEach((n) => (dist[n.id] = Infinity));
+  dist[graph.start] = 0;
+  const done = new Set<string>();
+  while (done.size < graph.nodes.length) {
+    let u: string | null = null;
+    for (const n of graph.nodes) if (!done.has(n.id) && (!u || dist[n.id] < dist[u])) u = n.id;
+    if (!u || dist[u] === Infinity) break;
+    done.add(u);
+    for (const { to, weight } of adj[u]) dist[to] = Math.min(dist[to], dist[u] + weight);
+  }
+  return dist;
+}
+
+function randomGraph(seed: number): GraphSpec {
+  let s = seed >>> 0 || 1;
+  const rand = () => {
+    s ^= s << 13;
+    s ^= s >>> 17;
+    s ^= s << 5;
+    return (s >>> 0) / 4294967296;
+  };
+
+  let graph = defaultCustomGraph();
+  graph = { ...graph, nodes: [graph.nodes[0]], edges: [], start: graph.nodes[0].id };
+
+  const count = 2 + Math.floor(rand() * 10);
+  for (let i = 1; i < count; i++) graph = addNode(graph, rand(), rand());
+  const ids = graph.nodes.map((n) => n.id);
+  const attempts = Math.floor(rand() * 20);
+  for (let i = 0; i < attempts; i++) {
+    const a = ids[Math.floor(rand() * ids.length)];
+    const b = ids[Math.floor(rand() * ids.length)];
+    graph = addEdge(graph, a, b, Math.floor(rand() * 30));
+  }
+  return graph;
+}
+
+const dijkstraAlgorithm = ALGORITHMS.find((a) => a.slug === "dijkstra")!;
+let orphanCases = 0;
+
+for (let seed = 1; seed <= 300; seed++) {
+  const graph = randomGraph(seed * 977);
+  const frames = dijkstraAlgorithm.generate({ array: [], graph, start: graph.start });
+  const expected = referenceDijkstra(graph);
+  const view = frames.at(-1)!.view as GraphView;
+
+  assert(frames.length > 1, `custom graph ${seed}: only ${frames.length} frames`);
+  if (unreachableNodes(graph).length) orphanCases++;
+
+  for (const node of graph.nodes) {
+    const shown = view.nodeLabels?.[node.id];
+    const want = expected[node.id] === Infinity ? "∞" : String(expected[node.id]);
+    assert(shown === want, `custom graph ${seed}: dist(${node.id}) shown ${shown}, expected ${want}`);
+  }
+  // Sanity: no edge weight the editor produced can be negative.
+  for (const e of graph.edges) {
+    assert((e.weight ?? 1) >= 0, `custom graph ${seed}: negative weight on ${e.from}-${e.to}`);
+  }
+}
+
+console.log(`✓ ${"Custom graphs".padEnd(22)} 300 cases (${orphanCases} with unreachable nodes)`);
 
 console.log(`\n${checks} assertions, ${failures} failure${failures === 1 ? "" : "s"}`);
 process.exit(failures ? 1 : 0);
