@@ -10,10 +10,29 @@ import { getGraph } from "./helpers";
  * still exists.
  */
 
-/** Node ids are single letters, which also caps the graph at a readable size. */
-export const NODE_IDS = "ABCDEFGHIJKL".split("");
-export const MAX_NODES = NODE_IDS.length;
-export const MAX_EDGES = 26;
+/**
+ * Spreadsheet-style labels: A…Z, AA, AB… — two characters covers 702 nodes,
+ * which is well past the 100-node ceiling on generated graphs.
+ */
+export function nodeLabel(index: number): string {
+  let n = index;
+  let out = "";
+  do {
+    out = String.fromCharCode(65 + (n % 26)) + out;
+    n = Math.floor(n / 26) - 1;
+  } while (n >= 0);
+  return out;
+}
+
+export const LABEL_PATTERN = /^[A-Z]{1,3}$/;
+
+/**
+ * Hand-editing is capped well below the generated-graph ceiling: a hand-built
+ * graph is stored in the cookie in full, and 26 nodes is what fits in 4KB.
+ * Generated graphs are stored as a recipe instead, so they can be far larger.
+ */
+export const MAX_NODES = 26;
+export const MAX_EDGES = 60;
 export const MIN_WEIGHT = 0;
 export const MAX_WEIGHT = 99;
 
@@ -25,7 +44,11 @@ export function defaultCustomGraph(): GraphSpec {
 }
 
 export function nextNodeId(graph: GraphSpec): string | null {
-  return NODE_IDS.find((id) => !graph.nodes.some((n) => n.id === id)) ?? null;
+  for (let i = 0; i < MAX_NODES; i++) {
+    const id = nodeLabel(i);
+    if (!graph.nodes.some((n) => n.id === id)) return id;
+  }
+  return null;
 }
 
 const clamp01 = (v: number) => Math.max(0.04, Math.min(0.96, v));
@@ -124,7 +147,7 @@ export function sanitizeGraph(graph: unknown): GraphSpec | null {
 
   const seen = new Set<string>();
   const nodes = g.nodes
-    .filter((n) => n && typeof n.id === "string" && NODE_IDS.includes(n.id) && !seen.has(n.id) && seen.add(n.id))
+    .filter((n) => n && typeof n.id === "string" && LABEL_PATTERN.test(n.id) && !seen.has(n.id) && seen.add(n.id))
     .slice(0, MAX_NODES)
     .map((n) => ({ id: n.id, x: clamp01(Number(n.x) || 0.5), y: clamp01(Number(n.y) || 0.5) }));
 

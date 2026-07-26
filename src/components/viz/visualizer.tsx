@@ -19,8 +19,9 @@ import {
 } from "lucide-react";
 
 import { ALGORITHMS, getAlgorithm } from "@/lib/algorithms";
-import { buildInput, isEditableGraph, usesArrayControls } from "@/lib/engine/input";
-import { defaultCustomGraph, sanitizeGraph } from "@/lib/engine/graph-edit";
+import { buildInput, isEditableGraph, resolveGraphSource, usesArrayControls } from "@/lib/engine/input";
+import { defaultCustomGraph } from "@/lib/engine/graph-edit";
+import { MAX_RANDOM_NODES } from "@/lib/engine/graph-gen";
 import { GraphEditor } from "./graph-editor";
 import { useAppStore } from "@/lib/store/app-store";
 import { Card } from "@/components/ui/primitives";
@@ -41,7 +42,7 @@ export function Visualizer({ slug }: { slug: string }) {
   const algorithm = getAlgorithm(slug)!;
   const editable = isEditableGraph(algorithm);
   const [editing, setEditing] = React.useState(false);
-  const workingGraph = sanitizeGraph(settings.customGraph) ?? defaultCustomGraph();
+  const workingGraph = resolveGraphSource(settings.graphSource) ?? defaultCustomGraph();
 
   const frames = React.useMemo(
     () => algorithm.generate(buildInput(algorithm, settings)),
@@ -159,7 +160,8 @@ export function Visualizer({ slug }: { slug: string }) {
                   <div>
                     <h2 className="text-[17px] font-bold text-[var(--text)]">Edit the graph</h2>
                     <p className="mt-0.5 text-[13.5px] text-[var(--text-muted)]">
-                      Every change re-runs Dijkstra immediately. Your graph is saved in this browser.
+                      Draw a graph by hand, or generate one with up to {MAX_RANDOM_NODES} nodes. Every change re-runs
+                      Dijkstra immediately and is saved in this browser.
                     </p>
                   </div>
                   <Button onClick={() => setEditing(false)}>
@@ -167,7 +169,11 @@ export function Visualizer({ slug }: { slug: string }) {
                     Run the visualization
                   </Button>
                 </div>
-                <GraphEditor graph={workingGraph} onChange={(g) => setSettings({ customGraph: g })} />
+                <GraphEditor
+                  graph={workingGraph}
+                  source={settings.graphSource}
+                  onChange={(graphSource) => setSettings({ graphSource })}
+                />
               </>
             ) : (
               <>

@@ -1,5 +1,6 @@
 import type { ArrayPreset } from "../engine/helpers";
 import type { GraphSpec } from "../engine/types";
+import type { RandomGraphRecipe } from "../engine/graph-gen";
 
 export const SETTINGS_COOKIE = "av_settings";
 export const PROGRESS_COOKIE = "av_progress";
@@ -14,9 +15,19 @@ export interface Settings {
   animation: AnimationStyle;
   preset: ArrayPreset;
   seed: number;
-  /** A user-edited graph for the weighted-graph visualizer. null = use the preset. */
-  customGraph: GraphSpec | null;
+  /** Where the weighted-graph visualizer gets its graph. null = the built-in preset. */
+  graphSource: GraphSource;
 }
+
+/**
+ * Hand-built graphs are stored in full; generated ones are stored as the recipe
+ * that produced them. A 100-node graph is ~6KB of nodes and edges but only ~60
+ * bytes of recipe, which is the difference between fitting in a cookie and not.
+ */
+export type GraphSource =
+  | { kind: "custom"; graph: GraphSpec }
+  | { kind: "random"; recipe: RandomGraphRecipe }
+  | null;
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: "light",
@@ -25,7 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   animation: "smooth",
   preset: "random",
   seed: 42,
-  customGraph: null,
+  graphSource: null,
 };
 
 export interface ActivityEntry {

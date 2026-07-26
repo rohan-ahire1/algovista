@@ -69,11 +69,26 @@ Dijkstra's visualizer has an **Edit graph** mode (`src/components/viz/graph-edit
 nodes by clicking the canvas, drag them to reposition, connect pairs, edit or delete edge weights,
 and pick which node is the source. Every edit re-runs the algorithm immediately.
 
-All mutations go through `src/lib/engine/graph-edit.ts`, which keeps the graph in a state the
+There is also a **Generate random** mode: a node-count slider up to 100, three density settings, and
+a source-node picker (click any node). Generated graphs are built from a minimum spanning tree over
+the node positions and then topped up to the requested average degree, so they are always connected
+and read as networks rather than hairballs. Weights come from the geometric distance between nodes.
+
+All hand edits go through `src/lib/engine/graph-edit.ts`, which keeps the graph in a state the
 algorithm can always run on: unique ids, no self-loops or duplicate edges, non-negative weights
 (Dijkstra's precondition), and a source that still exists. `sanitizeGraph` repairs anything a stale
-or hand-edited cookie could contain. Limits are 12 nodes and 26 edges — chosen so the worst case
-still fits comfortably inside the 4KB cookie.
+or hand-edited cookie could contain.
+
+**Storage is the reason the two modes differ.** A hand-built graph is stored in the cookie in full,
+so it is capped at 26 nodes / 60 edges. A generated graph is stored as the *recipe* that produced it
+(`{nodeCount, density, seed, startIndex}`, ~60 bytes) and rebuilt deterministically by
+`src/lib/engine/graph-gen.ts` — which is what lets it reach 100 nodes inside a 4KB cookie. Drawing
+tools therefore switch off above 26 nodes; picking the source still works, because that is part of
+the recipe.
+
+The renderer scales node radius, label size and per-edge weight chips to the node count
+(`graphScale` in `graph-view.tsx`), so 100 nodes stay legible in the same canvas. Worst case
+(100 nodes, dense) is 272 frames generated in ~11ms.
 
 Disconnected nodes are allowed and flagged, not blocked: Dijkstra correctly leaves them at ∞, and
 the editor explains that rather than preventing it.

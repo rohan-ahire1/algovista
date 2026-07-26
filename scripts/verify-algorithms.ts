@@ -11,6 +11,8 @@ import { DEFAULT_SETTINGS } from "../src/lib/store/schema";
 import { adjacency, getGraph, type ArrayPreset } from "../src/lib/engine/helpers";
 import type { ArrayView, GraphSpec, GraphView, TreeView } from "../src/lib/engine/types";
 import { addEdge, addNode, defaultCustomGraph, unreachableNodes } from "../src/lib/engine/graph-edit";
+import { DENSITIES, MAX_RANDOM_NODES, MIN_RANDOM_NODES, generateRandomGraph } from "../src/lib/engine/graph-gen";
+import { DEFAULT_SETTINGS } from "../src/lib/store/schema";
 
 const PRESETS: ArrayPreset[] = ["random", "sorted", "reversed", "nearly-sorted", "few-unique"];
 const SIZES = [5, 8, 13, 20];
@@ -207,6 +209,81 @@ for (let seed = 1; seed <= 300; seed++) {
 }
 
 console.log(`✓ ${"Custom graphs".padEnd(22)} 300 cases (${orphanCases} with unreachable nodes)`);
+
+/* ------------------------------------------------------------------ *
+ * Generated graphs: every size and density must stay connected,
+ * correct, and cheap enough to render.
+ * ------------------------------------------------------------------ */
+
+let worstFrames = 0;
+let worstMs = 0;
+let generatedCases = 0;
+
+for (const density of DENSITIES) {
+  for (let nodeCount = MIN_RANDOM_NODES; nodeCount <= MAX_RANDOM_NODES; nodeCount += 5) {
+    for (const seed of [1, 7, 4242]) {
+      const graph = generateRandomGraph({ nodeCount, density: density.id, seed, startIndex: 0 });
+      generatedCases++;
+
+      assert(graph.nodes.length === nodeCount, `random ${nodeCount}/${density.id}: got ${graph.nodes.length} nodes`);
+      assert(
+        new Set(graph.nodes.map((n) => n.id)).size === nodeCount,
+        `random ${nodeCount}/${density.id}: duplicate node ids`,
+      );
+      // The spanning tree means a generated graph is never disconnected.
+      assert(
+        unreachableNodes(graph).length === 0,
+        `random ${nodeCount}/${density.id} seed ${seed}: ${unreachableNodes(graph).length} unreachable nodes`,
+      );
+      for (const n of graph.nodes) {
+        assert(n.x >= 0 && n.x <= 1 && n.y >= 0 && n.y <= 1, `random ${nodeCount}: node ${n.id} outside canvas`);
+      }
+      for (const e of graph.edges) {
+        assert((e.weight ?? 0) >= 1 && (e.weight ?? 0) <= 99, `random ${nodeCount}: weight ${e.weight} out of range`);
+        assert(e.from !== e.to, `random ${nodeCount}: self-loop on ${e.from}`);
+      }
+
+      // Same recipe must rebuild the identical graph — that is what makes
+      // storing a recipe instead of the graph safe.
+      const again = generateRandomGraph({ nodeCount, density: density.id, seed, startIndex: 0 });
+      assert(
+        JSON.stringify(again) === JSON.stringify(graph),
+        `random ${nodeCount}/${density.id} seed ${seed}: generation is not deterministic`,
+      );
+
+      const t0 = performance.now();
+      const frames = dijkstraAlgorithm.generate({ array: [], graph, start: graph.start });
+      worstMs = Math.max(worstMs, performance.now() - t0);
+      worstFrames = Math.max(worstFrames, frames.length);
+
+      const expected = referenceDijkstra(graph);
+      const view = frames.at(-1)!.view as GraphView;
+      for (const node of graph.nodes) {
+        const want = String(expected[node.id]);
+        assert(
+          view.nodeLabels?.[node.id] === want,
+          `random ${nodeCount}/${density.id}: dist(${node.id}) = ${view.nodeLabels?.[node.id]}, expected ${want}`,
+        );
+      }
+    }
+  }
+}
+
+// A recipe must always fit the cookie, even at the maximum size.
+const biggestCookie = encodeURIComponent(
+  JSON.stringify({
+    ...DEFAULT_SETTINGS,
+    graphSource: {
+      kind: "random",
+      recipe: { nodeCount: MAX_RANDOM_NODES, density: "dense", seed: 999999, startIndex: 99 },
+    },
+  }),
+).length;
+assert(biggestCookie < 4096, `settings cookie is ${biggestCookie} bytes, over the 4096 limit`);
+
+console.log(
+  `✓ ${"Generated graphs".padEnd(22)} ${generatedCases} cases (max ${worstFrames} frames, ${worstMs.toFixed(0)}ms, cookie ${biggestCookie}B)`,
+);
 
 console.log(`\n${checks} assertions, ${failures} failure${failures === 1 ? "" : "s"}`);
 process.exit(failures ? 1 : 0);

@@ -2,6 +2,9 @@ import type { Algorithm } from "./algorithm";
 import type { AlgoInput } from "./types";
 import { buildArray } from "./helpers";
 import { sanitizeGraph } from "./graph-edit";
+import { generateRandomGraph, sanitizeRecipe } from "./graph-gen";
+import type { GraphSpec } from "./types";
+import type { GraphSource } from "../store/schema";
 import type { Settings } from "../store/schema";
 
 /**
@@ -31,8 +34,8 @@ export function buildInput(algorithm: Algorithm, settings: Settings): AlgoInput 
       };
 
     case "graph-weighted": {
-      // A graph the user has edited replaces the built-in preset entirely.
-      const custom = sanitizeGraph(settings.customGraph);
+      // A user-supplied graph replaces the built-in preset entirely.
+      const custom = resolveGraphSource(settings.graphSource);
       return {
         array: [],
         graphId: algorithm.defaultInput?.graphId,
@@ -55,4 +58,14 @@ export function usesArrayControls(algorithm: Algorithm) {
 
 export function isEditableGraph(algorithm: Algorithm) {
   return algorithm.inputKind === "graph-weighted";
+}
+
+/** Turns whatever is in the cookie into a graph, repairing bad values. */
+export function resolveGraphSource(source: GraphSource): GraphSpec | null {
+  if (!source) return null;
+  if (source.kind === "random") {
+    const recipe = sanitizeRecipe(source.recipe);
+    return recipe ? generateRandomGraph(recipe) : null;
+  }
+  return sanitizeGraph(source.graph);
 }
