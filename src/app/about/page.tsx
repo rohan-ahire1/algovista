@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Cookie, Keyboard, Layers, ScanEye, Sparkles } from "lucide-react";
 
-import { ALGORITHMS, CATEGORIES } from "@/lib/algorithms";
+import { ALGORITHMS, CATEGORIES, COMING_SOON_BLURB, type Category } from "@/lib/algorithms";
 import { LANGUAGES } from "@/lib/engine/algorithm";
 import { Card } from "@/components/ui/primitives";
 import { ButtonLink } from "@/components/ui/button";
@@ -68,28 +68,45 @@ export default function AboutPage() {
       <section className="mt-14">
         <h2 className="text-[22px] font-extrabold tracking-[-0.03em] text-[var(--text)]">What is in the library</h2>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {CATEGORIES.map((c) => {
+          {(CATEGORIES as readonly Category[]).map((c) => {
             const items = ALGORITHMS.filter((a) => a.category === c.id || (a.alsoIn ?? []).includes(c.id));
             return (
-              <Card key={c.id} className="p-5">
+              <Card key={c.id} className={c.comingSoon ? "border-dashed bg-[var(--surface-2)] p-5" : "p-5"}>
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-[11px] bg-[var(--primary-soft)] text-[var(--primary)]">
+                  <span
+                    className={
+                      c.comingSoon
+                        ? "flex h-10 w-10 items-center justify-center rounded-[11px] bg-[var(--surface-sunken)] text-[var(--text-subtle)]"
+                        : "flex h-10 w-10 items-center justify-center rounded-[11px] bg-[var(--primary-soft)] text-[var(--primary)]"
+                    }
+                  >
                     <Icon name={c.icon} className="h-[18px] w-[18px]" />
                   </span>
-                  <p className="text-[15px] font-bold text-[var(--text)]">{c.label}</p>
+                  <p className="flex-1 text-[15px] font-bold text-[var(--text)]">{c.label}</p>
+                  {c.comingSoon ? (
+                    <span className="rounded-full bg-[var(--surface-sunken)] px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--text-subtle)]">
+                      Soon
+                    </span>
+                  ) : null}
                 </div>
-                <ul className="mt-3.5 grid gap-1.5">
-                  {items.map((a) => (
-                    <li key={a.slug}>
-                      <Link
-                        href={`/algorithms/${a.slug}`}
-                        className="text-[13.5px] text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]"
-                      >
-                        {a.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                {c.comingSoon ? (
+                  <p className="mt-3.5 text-[13px] leading-relaxed text-[var(--text-muted)]">
+                    {COMING_SOON_BLURB[c.id]}
+                  </p>
+                ) : (
+                  <ul className="mt-3.5 grid gap-1.5">
+                    {items.map((a) => (
+                      <li key={a.slug}>
+                        <Link
+                          href={`/algorithms/${a.slug}`}
+                          className="text-[13.5px] text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]"
+                        >
+                          {a.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </Card>
             );
           })}
@@ -100,12 +117,11 @@ export default function AboutPage() {
         <h2 className="text-[22px] font-extrabold tracking-[-0.03em] text-[var(--text)]">Roadmap</h2>
         <p className="mt-2 max-w-[62ch] text-[15px] leading-relaxed text-[var(--text-muted)]">
           Requesting an algorithm is not wired up to a backend yet — there are no accounts and no server-side storage.
-          These are the areas the library will grow into next:
+          Dynamic Programming and Data Structures are the next two categories to fill in; beyond those, the platform
+          itself grows into:
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {[
-            { title: "Data structures", text: "Stacks, queues, linked lists, heaps and binary search trees with their own renderer." },
-            { title: "Dynamic programming", text: "Knapsack, longest common subsequence and coin change, visualised as filling tables." },
             { title: "Accounts and sync", text: "Optional sign-in so progress follows you between devices, replacing the cookie." },
             { title: "Custom input", text: "Type your own array or draw your own graph and watch any algorithm run on it." },
           ].map((r) => (

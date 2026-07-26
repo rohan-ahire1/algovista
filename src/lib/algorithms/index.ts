@@ -1,5 +1,5 @@
-import type { Algorithm, CategoryId } from "../engine/algorithm";
-import { CATEGORIES } from "../engine/algorithm";
+import type { Algorithm, Category, CategoryId } from "../engine/algorithm";
+import { CATEGORIES, COMING_SOON_BLURB } from "../engine/algorithm";
 
 import { binarySearch } from "./binary-search";
 import { breadthFirstSearch } from "./breadth-first-search";
@@ -41,11 +41,15 @@ export function inCategory(algorithm: Algorithm, category: CategoryId) {
   return algorithm.category === category || (algorithm.alsoIn ?? []).includes(category);
 }
 
-export function categoriesWithCounts() {
-  return CATEGORIES.map((c) => ({
+export function categoriesWithCounts(): (Category & { count: number })[] {
+  return (CATEGORIES as readonly Category[]).map((c) => ({
     ...c,
     count: ALGORITHMS.filter((a) => inCategory(a, c.id)).length,
   }));
+}
+
+export function isComingSoon(id: CategoryId) {
+  return (CATEGORIES as readonly Category[]).some((c) => c.id === id && c.comingSoon);
 }
 
 export function relatedTo(slug: string) {
@@ -69,4 +73,5 @@ export function searchAlgorithms(query: string) {
   ).slice(0, 8);
 }
 
-export { CATEGORIES };
+export { CATEGORIES, COMING_SOON_BLURB };
+export type { Category };

@@ -3,9 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, LayoutGrid, Lightbulb, SlidersHorizontal } from "lucide-react";
+import { ChevronRight, Clock3, LayoutGrid, Lightbulb, SlidersHorizontal } from "lucide-react";
 
-import { ALGORITHMS, categoriesWithCounts, categoryLabel, inCategory } from "@/lib/algorithms";
+import { ALGORITHMS, COMING_SOON_BLURB, categoriesWithCounts, categoryLabel, inCategory } from "@/lib/algorithms";
 import type { CategoryId } from "@/lib/engine/algorithm";
 import { Badge } from "@/components/ui/primitives";
 import { Select } from "@/components/ui/controls";
@@ -33,6 +33,9 @@ export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string
   );
   const [sort, setSort] = React.useState<Sort>("popular");
   const [difficulty, setDifficulty] = React.useState<string>("all");
+
+  const activeCategory = category === "all" ? null : category;
+  const comingSoon = activeCategory !== null && Boolean(categories.find((c) => c.id === activeCategory)?.comingSoon);
 
   const visible = React.useMemo(() => {
     let list = ALGORITHMS.filter((a) => (category === "all" ? true : inCategory(a, category)));
@@ -69,6 +72,7 @@ export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string
               icon={c.icon}
               label={c.label}
               count={c.count}
+              comingSoon={c.comingSoon}
               active={category === c.id}
               onClick={() => select(c.id)}
             />
@@ -94,7 +98,9 @@ export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string
             <h1 className="text-[clamp(1.8rem,3.2vw,2.3rem)] font-extrabold tracking-[-0.03em] text-[var(--text)]">
               {category === "all" ? "All Algorithms" : categoryLabel(category)}
             </h1>
-            <p className="mt-1.5 text-[15px] text-[var(--text-muted)]">Choose an algorithm to visualize and learn.</p>
+            <p className="mt-1.5 text-[15px] text-[var(--text-muted)]">
+              {comingSoon ? "Not built yet — here is what is planned." : "Choose an algorithm to visualize and learn."}
+            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
@@ -130,11 +136,43 @@ export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string
         <div className="av-scroll mt-5 flex gap-2 overflow-x-auto pb-1 lg:hidden">
           <Chip label="All" active={category === "all"} onClick={() => select("all")} />
           {categories.map((c) => (
-            <Chip key={c.id} label={c.label} active={category === c.id} onClick={() => select(c.id)} />
+            <Chip
+              key={c.id}
+              label={c.comingSoon ? `${c.label} · soon` : c.label}
+              active={category === c.id}
+              onClick={() => select(c.id)}
+            />
           ))}
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {comingSoon ? (
+          <div className="animate-fade-up mt-6 flex flex-col items-center rounded-[var(--radius-card)] border border-dashed border-[var(--border-strong)] bg-[var(--surface-2)] px-6 py-16 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-[16px] bg-[var(--primary-soft)] text-[var(--primary)]">
+              <Clock3 className="h-6 w-6" strokeWidth={1.8} />
+            </span>
+            <p className="mt-4 text-[18px] font-bold text-[var(--text)]">{activeCategory ? categoryLabel(activeCategory) : ""} is coming soon</p>
+            <p className="mt-2 max-w-[46ch] text-[14.5px] leading-relaxed text-[var(--text-muted)]">
+              {(activeCategory && COMING_SOON_BLURB[activeCategory]) ?? "Nothing has shipped in this category yet."}
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => select("all")}
+                className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-field)] bg-[var(--primary)] px-5 text-sm font-semibold text-[var(--on-primary)] shadow-[var(--shadow-primary)] transition-colors hover:bg-[var(--primary-hover)]"
+              >
+                Browse what is available
+              </button>
+              <Link
+                href="/about#roadmap"
+                className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-field)] border border-[var(--border)] bg-[var(--surface)] px-5 text-sm font-semibold text-[var(--text)] shadow-[var(--shadow-xs)] transition-colors hover:border-[var(--border-strong)]"
+              >
+                See the roadmap
+              </Link>
+            </div>
+          </div>
+        ) : null}
+
+        <div className={cn("mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3", comingSoon && "hidden")}>
           {visible.map((a, i) => (
             <Link
               key={a.slug}
@@ -172,7 +210,7 @@ export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string
           ))}
         </div>
 
-        {visible.length === 0 ? (
+        {visible.length === 0 && !comingSoon ? (
           <div className="mt-8 rounded-[var(--radius-card)] border border-dashed border-[var(--border-strong)] px-6 py-16 text-center">
             <LayoutGrid className="mx-auto h-6 w-6 text-[var(--text-subtle)]" />
             <p className="mt-3 font-semibold text-[var(--text)]">Nothing matches these filters</p>
@@ -196,12 +234,14 @@ function SidebarItem({
   icon,
   label,
   count,
+  comingSoon,
   active,
   onClick,
 }: {
   icon: string;
   label: string;
   count: number;
+  comingSoon?: boolean;
   active: boolean;
   onClick: () => void;
 }) {
@@ -217,11 +257,17 @@ function SidebarItem({
           : "text-[var(--text-muted)] hover:bg-[var(--surface-sunken)] hover:text-[var(--text)]",
       )}
     >
-      <Icon name={icon} className="h-[18px] w-[18px]" />
-      <span className="flex-1 truncate">{label}</span>
-      <span className={cn("text-[12px] tabular-nums", active ? "text-[var(--primary)]" : "text-[var(--text-subtle)]")}>
-        {count}
-      </span>
+      <Icon name={icon} className={cn("h-[18px] w-[18px]", comingSoon && !active && "opacity-60")} />
+      <span className={cn("flex-1 truncate", comingSoon && !active && "opacity-70")}>{label}</span>
+      {comingSoon ? (
+        <span className="rounded-full bg-[var(--surface-sunken)] px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--text-subtle)]">
+          Soon
+        </span>
+      ) : (
+        <span className={cn("text-[12px] tabular-nums", active ? "text-[var(--primary)]" : "text-[var(--text-subtle)]")}>
+          {count}
+        </span>
+      )}
     </button>
   );
 }
