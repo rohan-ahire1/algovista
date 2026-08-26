@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { searchAlgorithms, categoryLabel } from "@/lib/algorithms";
 import { Icon } from "@/components/icon";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/cn";
 
 export function SearchBox({ className, placeholder = "Search algorithms..." }: { className?: string; placeholder?: string }) {
@@ -51,7 +52,7 @@ export function SearchBox({ className, placeholder = "Search algorithms..." }: {
         className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-subtle)]"
         strokeWidth={2}
       />
-      <input
+      <Input
         ref={inputRef}
         value={query}
         onChange={(e) => {
@@ -75,7 +76,7 @@ export function SearchBox({ className, placeholder = "Search algorithms..." }: {
         }}
         placeholder={placeholder}
         aria-label="Search algorithms"
-        className="h-11 w-full rounded-[var(--radius-field)] border border-[var(--border)] bg-[var(--surface-2)] pl-11 pr-12 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)] transition-colors hover:border-[var(--border-strong)] focus:bg-[var(--surface)]"
+        className="h-11 w-full rounded-[var(--radius-field)] border-[var(--border)] bg-[var(--surface-2)] pl-11 pr-12 text-sm text-[var(--text)] placeholder:text-[var(--text-subtle)] transition-colors hover:border-[var(--border-strong)] focus:bg-[var(--surface)]"
       />
       <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-1.5 py-0.5 text-[11px] font-medium text-[var(--text-subtle)] sm:block">
         /

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+
 import "./globals.css";
 
 import { AppStoreProvider } from "@/lib/store/app-store";
@@ -12,10 +12,6 @@ import {
   parseCookieValue,
 } from "@/lib/store/schema";
 import { SiteHeader } from "@/components/nav/site-header";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", display: "swap" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono-code", display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -32,12 +28,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const progress = parseCookieValue(jar.get(PROGRESS_COOKIE)?.value, DEFAULT_PROGRESS);
 
   return (
-    <html lang="en" data-theme={settings.theme} suppressHydrationWarning>
-      <body className={`${inter.variable} ${jakarta.variable} ${mono.variable} antialiased`}>
+    <html
+      lang="en"
+      data-theme={settings.theme}
+      className={settings.theme === "dark" ? "dark" : undefined}
+      suppressHydrationWarning
+    >
+      <body>
         <AppStoreProvider initialSettings={settings} initialProgress={progress}>
           <div className="flex min-h-dvh flex-col">
             <SiteHeader />
-            <main className="flex-1">{children}</main>
+            <main className="av-app-shell flex-1">{children}</main>
           </div>
         </AppStoreProvider>
       </body>

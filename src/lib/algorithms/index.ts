@@ -13,6 +13,7 @@ import { mergeSort } from "./merge-sort";
 import { quickSort } from "./quick-sort";
 import { selectionSort } from "./selection-sort";
 import { topologicalSort } from "./topological-sort";
+import { zeroOneKnapsack } from "./zero-one-knapsack";
 
 export const ALGORITHMS: Algorithm[] = [
   bubbleSort,
@@ -24,6 +25,7 @@ export const ALGORITHMS: Algorithm[] = [
   fibonacciRecursion,
   quickSort,
   topologicalSort,
+  zeroOneKnapsack,
   insertionSort,
   selectionSort,
   linearSearch,

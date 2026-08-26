@@ -1,30 +1,30 @@
 import * as React from "react";
 import { cn } from "@/lib/cn";
+import { Badge as ShadcnBadge } from "@/components/ui/badge";
+import {
+  Card as ShadcnCard,
+  CardContent as ShadcnCardContent,
+  CardHeader as ShadcnCardHeader,
+  CardTitle as ShadcnCardTitle,
+} from "@/components/ui/card";
+import { Progress as ShadcnProgress } from "@/components/ui/progress";
 
 /* ------------------------------- Card ---------------------------------- */
 
 export function Card({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn(
-        "rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-xs)]",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <ShadcnCard className={className} {...props} />;
 }
 
 export function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("flex items-center justify-between gap-3 px-5 pt-5", className)} {...props} />;
+  return <ShadcnCardHeader className={className} {...props} />;
 }
 
 export function CardTitle({ className, ...props }: React.ComponentProps<"h3">) {
-  return <h3 className={cn("text-[15px] font-semibold text-[var(--text)]", className)} {...props} />;
+  return <ShadcnCardTitle className={className} {...props} />;
 }
 
 export function CardBody({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("p-5", className)} {...props} />;
+  return <ShadcnCardContent className={className} {...props} />;
 }
 
 /* ------------------------------- Badge --------------------------------- */
@@ -46,9 +46,10 @@ export function Badge({
   ...props
 }: React.ComponentProps<"span"> & { tone?: Tone }) {
   return (
-    <span
+    <ShadcnBadge
+      variant="secondary"
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-medium leading-none",
+        "border-transparent",
         tones[tone],
         className,
       )}
@@ -68,26 +69,7 @@ export function Progress({
   className?: string;
   tone?: "brand" | "mint";
 }) {
-  return (
-    <div
-      className={cn("h-1.5 w-full overflow-hidden rounded-full bg-[var(--surface-sunken)]", className)}
-      role="progressbar"
-      aria-valuenow={Math.round(value)}
-      aria-valuemin={0}
-      aria-valuemax={100}
-    >
-      <div
-        className="h-full rounded-full transition-[width] duration-500 ease-[var(--ease-out-quint)]"
-        style={{
-          width: `${Math.max(0, Math.min(100, value))}%`,
-          background:
-            tone === "mint"
-              ? "var(--success)"
-              : "linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--violet) 70%, var(--primary)))",
-        }}
-      />
-    </div>
-  );
+  return <ShadcnProgress value={value} className={cn(tone === "mint" && "av-progress-mint", className)} />;
 }
 
 /* ------------------------------ Icon tile ------------------------------- */

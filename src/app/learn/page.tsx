@@ -5,7 +5,7 @@ import { ArrowRight, BookOpen, ChevronRight, Compass, GraduationCap } from "luci
 import { ALGORITHMS, CATEGORIES, inCategory } from "@/lib/algorithms";
 import { MODULES, TOTAL_LESSONS } from "@/lib/learning-path";
 import { Card } from "@/components/ui/primitives";
-import { ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-compat";
 import { Icon } from "@/components/icon";
 
 export const metadata: Metadata = {

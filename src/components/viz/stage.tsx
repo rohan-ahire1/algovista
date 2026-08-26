@@ -5,6 +5,7 @@ import type { Frame, LegendItem } from "@/lib/engine/types";
 import type { AnimationStyle } from "@/lib/store/schema";
 import { ArrayViewRenderer } from "./array-view";
 import { GraphViewRenderer } from "./graph-view";
+import { TableViewRenderer } from "./table-view";
 import { TreeViewRenderer } from "./tree-view";
 import { MARK_STYLES } from "./marks";
 
@@ -12,15 +13,20 @@ export function Stage({
   frame,
   animation = "smooth",
   compact = false,
+  title,
 }: {
   frame: Frame;
   animation?: AnimationStyle;
   compact?: boolean;
+  title?: string;
 }) {
   const view = frame.view;
-  if (view.kind === "array") return <ArrayViewRenderer view={view} animation={animation} compact={compact} />;
+  if (view.kind === "array") {
+    return <ArrayViewRenderer view={view} animation={animation} compact={compact} title={title} />;
+  }
   if (view.kind === "graph") return <GraphViewRenderer view={view} compact={compact} />;
-  return <TreeViewRenderer view={view} compact={compact} />;
+  if (view.kind === "tree") return <TreeViewRenderer view={view} compact={compact} />;
+  return <TableViewRenderer view={view} compact={compact} />;
 }
 
 export function Legend({ items }: { items: LegendItem[] }) {

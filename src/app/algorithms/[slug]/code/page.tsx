@@ -6,7 +6,7 @@ import { ArrowLeft, Box, Clock, Lightbulb, PlayCircle, ShieldCheck, SquareDashed
 import { ALGORITHMS, getAlgorithm } from "@/lib/algorithms";
 import { highlightAll } from "@/lib/highlight";
 import { Card } from "@/components/ui/primitives";
-import { ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-compat";
 import { CategoryRail } from "@/components/nav/category-rail";
 import { CodeViewer } from "@/components/code/code-viewer";
 

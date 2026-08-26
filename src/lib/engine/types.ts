@@ -82,7 +82,42 @@ export interface TreeView {
   collections?: { label: string; items: string[]; tone?: "brand" | "violet" | "mint" }[];
 }
 
-export type View = ArrayView | GraphView | TreeView;
+export interface TableRow {
+  id: string;
+  label: string;
+  values: (number | string)[];
+  marks?: MarkKind[];
+}
+
+export interface TableDecision {
+  item: string;
+  capacity: number;
+  skip: number;
+  take: number | null;
+  result: number;
+  choice: "take" | "skip";
+  takeSource?: number;
+  itemValue?: number;
+  remainingCapacity?: number;
+}
+
+export interface TableView {
+  kind: "table";
+  columns: string[];
+  rows: TableRow[];
+  caption?: string;
+  activeCell?: { row: number; column: number };
+  decision?: TableDecision;
+}
+
+export type View = ArrayView | GraphView | TreeView | TableView;
+
+export interface KnapsackItem {
+  id: string;
+  name: string;
+  weight: number;
+  value: number;
+}
 
 export interface Frame {
   /** Short imperative headline, e.g. "Compare 8 and 1". */
@@ -111,7 +146,7 @@ export interface LegendItem {
   label: string;
 }
 
-export type InputKind = "array" | "array-target" | "graph" | "graph-weighted" | "number";
+export type InputKind = "array" | "array-target" | "graph" | "graph-weighted" | "number" | "knapsack";
 
 export interface AlgoInput {
   array: number[];
@@ -121,6 +156,8 @@ export interface AlgoInput {
   graph?: GraphSpec;
   start?: string;
   n?: number;
+  items?: KnapsackItem[];
+  capacity?: number;
 }
 
 /** A complete graph definition — the built-in presets and user-edited graphs share this shape. */

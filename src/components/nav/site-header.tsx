@@ -3,10 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Moon, Sun, X } from "lucide-react";
+import { Flame, Menu, Moon, Sun, X } from "lucide-react";
 import { Logo } from "./logo";
 import { SearchBox } from "./search-box";
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button-compat";
 import { useAppStore } from "@/lib/store/app-store";
 import { cn } from "@/lib/cn";
 
@@ -31,11 +31,11 @@ export function SiteHeader() {
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] backdrop-blur-xl">
-      <div className="mx-auto flex h-[68px] w-full max-w-[1680px] items-center gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo />
+    <header className="sticky top-0 z-40 overflow-x-clip border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_92%,transparent)] shadow-[var(--shadow-xs)] backdrop-blur-xl">
+      <div className="mx-auto flex h-[72px] w-full max-w-[1480px] min-w-0 items-center gap-4 px-4 sm:px-6 lg:px-8">
+        <Logo className="shrink-0" />
 
-        <nav className="ml-4 hidden items-center gap-1 lg:flex">
+        <nav className="ml-4 hidden shrink-0 items-center gap-1 xl:flex">
           {LINKS.map((l) => {
             const active = l.match.some((m) => pathname.startsWith(m));
             return (
@@ -44,29 +44,35 @@ export function SiteHeader() {
                 href={l.href}
                 className={cn(
                   "relative rounded-[10px] px-3.5 py-2 text-sm font-medium transition-colors",
-                  active ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",
+                  active
+                    ? "bg-[var(--primary-soft)] text-[var(--primary)]"
+                    : "text-[var(--text-muted)] hover:bg-[var(--surface-sunken)] hover:text-[var(--text)]",
                 )}
               >
                 {l.label}
-                {active ? (
-                  <span className="absolute inset-x-3.5 -bottom-[19px] h-[2px] rounded-full bg-[var(--primary)]" />
-                ) : null}
               </Link>
             );
           })}
         </nav>
 
-        <SearchBox className="ml-auto hidden w-full max-w-md md:block" />
+        <SearchBox className="ml-auto hidden min-w-0 w-full max-w-md flex-1 md:block" />
 
-        <div className="ml-auto flex items-center gap-2 md:ml-3">
-          <button
+        <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-3">
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setSettings({ theme: settings.theme === "light" ? "dark" : "light" })}
             aria-label={`Switch to ${settings.theme === "light" ? "dark" : "light"} theme`}
-            className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-field)] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-sunken)] hover:text-[var(--text)]"
+            className="h-10 w-10 text-[var(--text-muted)] hover:bg-[var(--surface-sunken)] hover:text-[var(--text)]"
           >
             {settings.theme === "light" ? <Moon className="h-[18px] w-[18px]" /> : <Sun className="h-[18px] w-[18px]" />}
-          </button>
+          </Button>
+
+          <div className="hidden items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[12px] font-semibold text-[var(--text)] sm:flex">
+            <Flame className="h-4 w-4 text-[var(--primary)]" />
+            {progress.streak}
+          </div>
 
           {isLanding ? (
             <ButtonLink href="/algorithms" size="sm" className="hidden h-10 px-4 sm:inline-flex">
@@ -82,20 +88,22 @@ export function SiteHeader() {
             </Link>
           )}
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setMenuOpen((o) => !o)}
             aria-label="Toggle navigation"
             aria-expanded={menuOpen}
-            className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-field)] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-sunken)] lg:hidden"
+            className="h-10 w-10 text-[var(--text-muted)] hover:bg-[var(--surface-sunken)] xl:hidden"
           >
             {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          </Button>
         </div>
       </div>
 
       {menuOpen ? (
-        <div className="animate-fade-up border-t border-[var(--border)] bg-[var(--surface)] px-4 pb-4 pt-3 lg:hidden">
+        <div className="animate-fade-up border-t border-[var(--border)] bg-[var(--surface)] px-4 pb-4 pt-3 xl:hidden">
           <SearchBox className="mb-3 md:hidden" />
           <nav className="grid gap-1">
             {LINKS.map((l) => (

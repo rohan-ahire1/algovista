@@ -12,7 +12,6 @@ import { adjacency, getGraph, type ArrayPreset } from "../src/lib/engine/helpers
 import type { ArrayView, GraphSpec, GraphView, TreeView } from "../src/lib/engine/types";
 import { addEdge, addNode, defaultCustomGraph, unreachableNodes } from "../src/lib/engine/graph-edit";
 import { DENSITIES, MAX_RANDOM_NODES, MIN_RANDOM_NODES, generateRandomGraph } from "../src/lib/engine/graph-gen";
-import { DEFAULT_SETTINGS } from "../src/lib/store/schema";
 
 const PRESETS: ArrayPreset[] = ["random", "sorted", "reversed", "nearly-sorted", "few-unique"];
 const SIZES = [5, 8, 13, 20];

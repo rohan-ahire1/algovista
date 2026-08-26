@@ -10,10 +10,8 @@ import {
   Grid3x3,
   Lightbulb,
   ListChecks,
-  Moon,
   Play,
   RotateCcw,
-  Shuffle,
   SkipForward,
   Sliders,
   Sparkles,
@@ -25,13 +23,11 @@ import {
 import { getAlgorithm } from "@/lib/algorithms";
 import { buildInput } from "@/lib/engine/input";
 import { useAppStore } from "@/lib/store/app-store";
-import type { AnimationStyle } from "@/lib/store/schema";
-import type { ArrayPreset } from "@/lib/engine/helpers";
 import { Card } from "@/components/ui/primitives";
-import { Button } from "@/components/ui/button";
-import { NumberField, Segmented, Select, Slider } from "@/components/ui/controls";
+import { Button } from "@/components/ui/button-compat";
 import { Legend, Stage } from "@/components/viz/stage";
 import { usePlayer } from "@/components/viz/use-player";
+import { VisualizationControlsForm } from "./visualization-controls-form";
 import { cn } from "@/lib/cn";
 
 const NAV = [
@@ -54,7 +50,7 @@ const ABOUT = [
 const PREVIEW_SLUG = "merge-sort";
 
 export function SettingsScreen() {
-  const { settings, setSettings, resetSettings } = useAppStore();
+  const { settings } = useAppStore();
   const algorithm = getAlgorithm(PREVIEW_SLUG)!;
 
   const frames = React.useMemo(
@@ -106,143 +102,7 @@ export function SettingsScreen() {
         <div className="mt-7 grid gap-5 xl:grid-cols-[minmax(0,470px)_minmax(0,1fr)]">
           {/* form */}
           <Card className="p-6">
-            <Field label="Array Size">
-              <div className="flex items-center gap-4">
-                <NumberField
-                  aria-label="Array size"
-                  value={settings.arraySize}
-                  min={5}
-                  max={50}
-                  onChange={(v) => setSettings({ arraySize: v })}
-                  className="w-[104px]"
-                />
-                <div className="flex-1">
-                  <div className="relative">
-                    <span
-                      className="absolute -top-5 -translate-x-1/2 text-[12.5px] font-semibold text-[var(--text)]"
-                      style={{ left: `${((settings.arraySize - 5) / 45) * 100}%` }}
-                    >
-                      {settings.arraySize}
-                    </span>
-                    <Slider
-                      aria-label="Array size slider"
-                      value={settings.arraySize}
-                      min={5}
-                      max={50}
-                      onChange={(v) => setSettings({ arraySize: v })}
-                    />
-                  </div>
-                  <div className="mt-1 flex justify-between text-[12px] text-[var(--text-subtle)]">
-                    <span>5</span>
-                    <span>50</span>
-                  </div>
-                </div>
-              </div>
-            </Field>
-
-            <Field label="Speed" className="mt-7">
-              <div className="flex items-center gap-4">
-                <span className="text-[13px] text-[var(--text-muted)]">Slow</span>
-                <div className="relative flex-1">
-                  <span
-                    className="absolute -top-5 -translate-x-1/2 text-[12.5px] font-semibold text-[var(--text)]"
-                    style={{ left: `${settings.speed}%` }}
-                  >
-                    {settings.speed}%
-                  </span>
-                  <Slider
-                    aria-label="Speed"
-                    value={settings.speed}
-                    min={0}
-                    max={100}
-                    onChange={(v) => setSettings({ speed: v })}
-                  />
-                </div>
-                <span className="text-[13px] text-[var(--text-muted)]">Fast</span>
-              </div>
-            </Field>
-
-            <Field label="Animation Style" className="mt-7">
-              <Select
-                aria-label="Animation style"
-                value={settings.animation}
-                onChange={(v) => setSettings({ animation: v as AnimationStyle })}
-                options={[
-                  { value: "smooth", label: "Smooth" },
-                  { value: "instant", label: "Instant" },
-                  { value: "bouncy", label: "Bouncy" },
-                ]}
-              />
-            </Field>
-
-            <Field label="Theme" className="mt-7">
-              <Segmented
-                value={settings.theme}
-                onChange={(v) => setSettings({ theme: v })}
-                options={[
-                  {
-                    value: "light",
-                    label: (
-                      <>
-                        <Sun className="h-[18px] w-[18px]" /> Light
-                      </>
-                    ),
-                  },
-                  {
-                    value: "dark",
-                    label: (
-                      <>
-                        <Moon className="h-[18px] w-[18px]" /> Dark
-                      </>
-                    ),
-                  },
-                ]}
-              />
-            </Field>
-
-            <Field label="Initial Array" className="mt-7">
-              <div className="flex flex-wrap items-center gap-3">
-                <Select
-                  aria-label="Initial array preset"
-                  value={settings.preset}
-                  onChange={(v) => setSettings({ preset: v as ArrayPreset })}
-                  options={[
-                    { value: "random", label: "Random" },
-                    { value: "sorted", label: "Sorted" },
-                    { value: "reversed", label: "Reversed" },
-                    { value: "nearly-sorted", label: "Nearly sorted" },
-                    { value: "few-unique", label: "Few unique" },
-                  ]}
-                  className="min-w-[190px] flex-1"
-                />
-                <Button
-                  variant="secondary"
-                  className="text-[var(--primary)]"
-                  onClick={() => setSettings({ seed: Math.floor(Math.random() * 9000) + 100 })}
-                >
-                  <Shuffle className="h-4 w-4" />
-                  Generate New
-                </Button>
-              </div>
-            </Field>
-
-            <Field label="Actions" className="mt-7">
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="secondary" onClick={resetSettings}>
-                  <RotateCcw className="h-4 w-4" />
-                  Reset
-                </Button>
-                <Button
-                  variant="danger"
-                  onClick={() =>
-                    setSettings({ seed: Math.floor(Math.random() * 9000) + 100, preset: "random" })
-                  }
-                >
-                  <Shuffle className="h-4 w-4" />
-                  Randomize
-                </Button>
-              </div>
-            </Field>
+            <VisualizationControlsForm />
           </Card>
 
           {/* preview */}
@@ -304,15 +164,6 @@ export function SettingsScreen() {
           All changes apply in real time and help you explore algorithms better.
         </p>
       </div>
-    </div>
-  );
-}
-
-function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
-  return (
-    <div className={className}>
-      <p className="mb-2.5 text-[13.5px] font-semibold text-[var(--text)]">{label}</p>
-      {children}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, CirclePlay, Heart, Lightbulb, PlayCircle, ScanEye, Sparkles, Waypoints } from "lucide-react";
 
-import { ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-compat";
 import { HeroVisual } from "@/components/marketing/hero-visual";
 import { Icon } from "@/components/icon";
 import { ALGORITHMS, categoriesWithCounts } from "@/lib/algorithms";

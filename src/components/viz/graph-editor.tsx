@@ -30,7 +30,7 @@ import {
   type RandomGraphRecipe,
 } from "@/lib/engine/graph-gen";
 import type { GraphSource } from "@/lib/store/schema";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button-compat";
 import { Segmented, Slider } from "@/components/ui/controls";
 import { graphScale } from "./graph-view";
 import { cn } from "@/lib/cn";

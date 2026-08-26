@@ -17,8 +17,7 @@ export const CATEGORIES = [
   { id: "recursion", label: "Recursion", icon: "Repeat" },
   { id: "divide-conquer", label: "Divide & Conquer", icon: "GitFork" },
   { id: "greedy", label: "Greedy", icon: "Target" },
-  // Listed so the shape of the library is visible, but nothing ships in them yet.
-  { id: "dynamic-programming", label: "Dynamic Programming", icon: "Grid2x2", comingSoon: true },
+  { id: "dynamic-programming", label: "Dynamic Programming", icon: "Grid2x2" },
   { id: "data-structures", label: "Data Structures", icon: "Boxes", comingSoon: true },
 ] as const;
 
@@ -33,8 +32,6 @@ export interface Category {
 
 /** What each empty category is waiting on — shown in place of a card grid. */
 export const COMING_SOON_BLURB: Partial<Record<CategoryId, string>> = {
-  "dynamic-programming":
-    "Knapsack, longest common subsequence and coin change, visualised as tables filling in cell by cell.",
   "data-structures":
     "Stacks, queues, linked lists, heaps and binary search trees, each with its own renderer and operations.",
 };

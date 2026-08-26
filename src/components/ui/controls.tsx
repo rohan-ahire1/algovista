@@ -2,9 +2,22 @@
 
 import * as React from "react";
 import { ChevronDown } from "lucide-react";
+
+import {
+  Select as ShadcnSelect,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider as ShadcnSlider } from "@/components/ui/slider";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Input } from "@/components/ui/input";
+import { Tabs as ShadcnTabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/cn";
 
-/* ------------------------------- Slider --------------------------------- */
+/* These small wrappers preserve AlgoVista's existing behavior while composing
+ * the generated shadcn primitives underneath. */
 
 export function Slider({
   value,
@@ -23,33 +36,18 @@ export function Slider({
   className?: string;
   "aria-label"?: string;
 }) {
-  const pct = ((value - min) / (max - min)) * 100;
   return (
-    <div className={cn("relative flex h-5 w-full items-center", className)}>
-      <div className="absolute inset-x-0 h-1.5 rounded-full bg-[var(--surface-sunken)]" />
-      <div
-        className="pointer-events-none absolute h-1.5 rounded-full bg-[var(--primary)]"
-        style={{ width: `${pct}%` }}
-      />
-      <div
-        className="pointer-events-none absolute h-4 w-4 -translate-x-1/2 rounded-full border-[3px] border-[var(--primary)] bg-[var(--surface)] shadow-[var(--shadow-sm)] transition-transform duration-150 ease-[var(--ease-out-quint)]"
-        style={{ left: `${pct}%` }}
-      />
-      <input
-        type="range"
-        aria-label={ariaLabel}
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="relative z-10 h-5 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-transparent [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-transparent"
-      />
-    </div>
+    <ShadcnSlider
+      value={[value]}
+      min={min}
+      max={max}
+      step={step}
+      onValueChange={(values) => onChange(values[0] ?? value)}
+      aria-label={ariaLabel}
+      className={cn("h-5", className)}
+    />
   );
 }
-
-/* ------------------------------- Select --------------------------------- */
 
 export function Select({
   value,
@@ -67,31 +65,24 @@ export function Select({
   "aria-label"?: string;
 }) {
   return (
-    <div className={cn("relative", className)}>
-      <select
+    <ShadcnSelect value={value} onValueChange={onChange}>
+      <SelectTrigger
+        size={size === "sm" ? "sm" : "default"}
         aria-label={ariaLabel}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={cn(
-          "w-full cursor-pointer appearance-none rounded-[var(--radius-field)] border border-[var(--border)] bg-[var(--surface)] pr-9 font-medium text-[var(--text)] shadow-[var(--shadow-xs)] transition-colors hover:border-[var(--border-strong)]",
-          size === "sm" ? "h-9 pl-3 text-[13px]" : "h-11 pl-4 text-sm",
-        )}
+        className={cn("w-full border-[var(--border)] bg-[var(--surface)] font-medium text-[var(--text)] shadow-[var(--shadow-xs)]", className)}
       >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
         ))}
-      </select>
-      <ChevronDown
-        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-subtle)]"
-        strokeWidth={2}
-      />
-    </div>
+      </SelectContent>
+    </ShadcnSelect>
   );
 }
-
-/* --------------------------- Number stepper ----------------------------- */
 
 export function NumberField({
   value,
@@ -116,14 +107,14 @@ export function NumberField({
         className,
       )}
     >
-      <input
+      <Input
         aria-label={ariaLabel}
         type="number"
         value={value}
         min={min}
         max={max}
         onChange={(e) => onChange(clamp(Number(e.target.value)))}
-        className="w-full bg-transparent text-sm font-medium text-[var(--text)] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        className="h-auto border-0 bg-transparent px-0 py-0 text-sm font-medium shadow-none focus-visible:ring-0"
       />
       <div className="flex flex-col">
         <button
@@ -147,8 +138,6 @@ export function NumberField({
   );
 }
 
-/* --------------------------- Segmented control -------------------------- */
-
 export function Segmented<T extends string>({
   value,
   onChange,
@@ -161,31 +150,26 @@ export function Segmented<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn("grid gap-2", className)} style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}>
-      {options.map((o) => {
-        const active = o.value === value;
-        return (
-          <button
-            key={o.value}
-            type="button"
-            onClick={() => onChange(o.value)}
-            aria-pressed={active}
-            className={cn(
-              "flex h-11 items-center justify-center gap-2 rounded-[var(--radius-field)] border text-sm font-medium transition-all duration-200 ease-[var(--ease-out-quint)]",
-              active
-                ? "border-transparent bg-[var(--primary)] text-[var(--on-primary)] shadow-[var(--shadow-primary)]"
-                : "border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:text-[var(--text)]",
-            )}
-          >
-            {o.label}
-          </button>
-        );
-      })}
-    </div>
+    <ToggleGroup
+      type="single"
+      value={value}
+      onValueChange={(next) => next && onChange(next as T)}
+      className={cn("grid w-full gap-2", className)}
+      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+    >
+      {options.map((option) => (
+        <ToggleGroupItem
+          key={option.value}
+          value={option.value}
+          variant="outline"
+          className="h-11 rounded-[var(--radius-field)] border-[var(--border)] bg-[var(--surface)] text-sm font-medium text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:text-[var(--text)] data-[state=on]:border-transparent data-[state=on]:bg-[var(--primary)] data-[state=on]:text-[var(--on-primary)]"
+        >
+          {option.label}
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
   );
 }
-
-/* -------------------------------- Tabs ---------------------------------- */
 
 export function Tabs<T extends string>({
   value,
@@ -199,31 +183,18 @@ export function Tabs<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn("relative flex items-center gap-7 border-b border-[var(--border)]", className)} role="tablist">
-      {options.map((o) => {
-        const active = o.value === value;
-        return (
-          <button
-            key={o.value}
-            role="tab"
-            aria-selected={active}
-            type="button"
-            onClick={() => onChange(o.value)}
-            className={cn(
-              "relative -mb-px whitespace-nowrap pb-3 pt-1 text-sm font-medium transition-colors",
-              active ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--text)]",
-            )}
+    <ShadcnTabs value={value} onValueChange={(next) => onChange(next as T)} className={cn("w-full", className)}>
+      <TabsList variant="line" className="w-max gap-7 rounded-none bg-transparent p-0">
+        {options.map((option) => (
+          <TabsTrigger
+            key={option.value}
+            value={option.value}
+            className="rounded-none px-0 pb-3 pt-1 text-sm font-medium text-[var(--text-muted)] data-[state=active]:text-[var(--primary)]"
           >
-            {o.label}
-            <span
-              className={cn(
-                "absolute inset-x-0 -bottom-px h-[2px] rounded-full transition-all duration-300 ease-[var(--ease-out-quint)]",
-                active ? "bg-[var(--primary)] opacity-100" : "opacity-0",
-              )}
-            />
-          </button>
-        );
-      })}
-    </div>
+            {option.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </ShadcnTabs>
   );
 }

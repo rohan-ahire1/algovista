@@ -24,6 +24,7 @@ export function CategoryRail({ activeCategory, popular = true }: { activeCategor
         </Link>
         {categories.map((c) => {
           const active = c.id === activeCategory;
+          const comingSoon = Boolean(c.comingSoon && c.count === 0);
           return (
             <Link
               key={c.id}
@@ -36,8 +37,8 @@ export function CategoryRail({ activeCategory, popular = true }: { activeCategor
               )}
             >
               <Icon name={c.icon} className="h-[18px] w-[18px]" />
-              <span className={cn("flex-1 truncate", c.comingSoon && !active && "opacity-70")}>{c.label}</span>
-              {c.comingSoon ? (
+              <span className={cn("flex-1 truncate", comingSoon && !active && "opacity-70")}>{c.label}</span>
+              {comingSoon ? (
                 <span className="rounded-full bg-[var(--surface-sunken)] px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--text-subtle)]">
                   Soon
                 </span>

@@ -20,7 +20,7 @@ import { PRACTICE_SECTIONS, buildChallenges, buildDrill, buildMockExam, buildQui
 import { TOTAL_LESSONS } from "@/lib/learning-path";
 import { useAppStore } from "@/lib/store/app-store";
 import { Card, Progress as Bar } from "@/components/ui/primitives";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button-compat";
 import { Icon } from "@/components/icon";
 import { QuizRunner } from "./quiz-runner";
 import { cn } from "@/lib/cn";

@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, Check, RotateCcw, Trophy, X } from "lucide-react
 
 import type { PracticeQuestion } from "@/lib/practice";
 import { useAppStore } from "@/lib/store/app-store";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button-compat";
 import { Card } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
 

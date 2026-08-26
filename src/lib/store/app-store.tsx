@@ -68,7 +68,9 @@ export function AppStoreProvider({
   const [progress, setProgressState] = React.useState<Progress>(initialProgress);
 
   React.useEffect(() => {
-    document.documentElement.dataset.theme = settings.theme;
+    const root = document.documentElement;
+    root.dataset.theme = settings.theme;
+    root.classList.toggle("dark", settings.theme === "dark");
   }, [settings.theme]);
 
   const setSettings = React.useCallback((patch: Partial<Settings>) => {

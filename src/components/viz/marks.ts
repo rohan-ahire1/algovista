@@ -11,7 +11,7 @@ export const MARK_STYLES: Record<MarkKind, MarkStyle> = {
   idle: { fill: "var(--viz-idle)", text: "var(--text)", label: "Unsorted" },
   compare: {
     fill: "var(--viz-compare)",
-    text: "#ffffff",
+    text: "var(--ink)",
     ring: "color-mix(in srgb, var(--viz-compare) 35%, transparent)",
     label: "Comparing",
   },
@@ -30,14 +30,14 @@ export const MARK_STYLES: Record<MarkKind, MarkStyle> = {
   },
   active: {
     fill: "var(--viz-active)",
-    text: "#ffffff",
+    text: "var(--ink)",
     ring: "color-mix(in srgb, var(--viz-active) 35%, transparent)",
     label: "Active",
   },
   discarded: { fill: "var(--viz-discarded)", text: "var(--text-subtle)", label: "Eliminated" },
   found: {
     fill: "var(--success)",
-    text: "#ffffff",
+    text: "var(--ink)",
     ring: "color-mix(in srgb, var(--success) 35%, transparent)",
     label: "Found",
   },
@@ -48,7 +48,7 @@ export const MARK_STYLES: Record<MarkKind, MarkStyle> = {
     ring: "color-mix(in srgb, var(--viz-compare-soft) 40%, transparent)",
     label: "Frontier",
   },
-  path: { fill: "var(--viz-compare)", text: "#ffffff", label: "On path" },
+  path: { fill: "var(--viz-compare)", text: "var(--ink)", label: "On path" },
 };
 
 export const POINTER_TONES = {

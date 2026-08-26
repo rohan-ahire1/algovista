@@ -3,11 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Clock3, LayoutGrid, Lightbulb, SlidersHorizontal } from "lucide-react";
+import { BookOpen, ChevronRight, Clock3, LayoutGrid, Lightbulb, PlayCircle, SlidersHorizontal } from "lucide-react";
 
 import { ALGORITHMS, COMING_SOON_BLURB, categoriesWithCounts, categoryLabel, inCategory } from "@/lib/algorithms";
 import type { CategoryId } from "@/lib/engine/algorithm";
 import { Badge } from "@/components/ui/primitives";
+import { Button, ButtonLink } from "@/components/ui/button-compat";
 import { Select } from "@/components/ui/controls";
 import { Icon } from "@/components/icon";
 import { cn } from "@/lib/cn";
@@ -23,6 +24,7 @@ const TONE_BY_CATEGORY: Record<string, "brand" | "violet" | "mint" | "amber" | "
   recursion: "amber",
   "divide-conquer": "brand",
   greedy: "violet",
+  "dynamic-programming": "mint",
 };
 
 export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string }) {
@@ -35,7 +37,6 @@ export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string
   const [difficulty, setDifficulty] = React.useState<string>("all");
 
   const activeCategory = category === "all" ? null : category;
-  const comingSoon = activeCategory !== null && Boolean(categories.find((c) => c.id === activeCategory)?.comingSoon);
 
   const visible = React.useMemo(() => {
     let list = ALGORITHMS.filter((a) => (category === "all" ? true : inCategory(a, category)));
@@ -47,6 +48,11 @@ export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string
       return b.popularity - a.popularity;
     });
   }, [category, sort, difficulty]);
+
+  // A category is only "coming soon" when it has no registered algorithms.
+  // This keeps the library resilient when an algorithm ships before the
+  // category metadata gets updated.
+  const comingSoon = activeCategory !== null && visible.length === 0 && Boolean(categories.find((c) => c.id === activeCategory)?.comingSoon);
 
   const select = (id: CategoryId | "all") => {
     setCategory(id);
@@ -72,7 +78,7 @@ export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string
               icon={c.icon}
               label={c.label}
               count={c.count}
-              comingSoon={c.comingSoon}
+              comingSoon={Boolean(c.comingSoon && c.count === 0)}
               active={category === c.id}
               onClick={() => select(c.id)}
             />
@@ -106,17 +112,18 @@ export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex items-center gap-2 rounded-[var(--radius-field)] border border-[var(--border)] bg-[var(--surface)] px-3 shadow-[var(--shadow-xs)]">
               <SlidersHorizontal className="h-4 w-4 text-[var(--text-subtle)]" />
-              <select
+              <Select
                 aria-label="Filter by difficulty"
                 value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value)}
-                className="h-11 cursor-pointer appearance-none bg-transparent pr-1 text-sm font-medium text-[var(--text)] outline-none"
-              >
-                <option value="all">All levels</option>
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-              </select>
+                onChange={setDifficulty}
+                options={[
+                  { value: "all", label: "All levels" },
+                  { value: "Beginner", label: "Beginner" },
+                  { value: "Intermediate", label: "Intermediate" },
+                  { value: "Advanced", label: "Advanced" },
+                ]}
+                className="min-w-[142px]"
+              />
             </div>
             <Select
               aria-label="Sort algorithms"
@@ -138,7 +145,7 @@ export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string
           {categories.map((c) => (
             <Chip
               key={c.id}
-              label={c.comingSoon ? `${c.label} · soon` : c.label}
+              label={c.comingSoon && c.count === 0 ? `${c.label} · soon` : c.label}
               active={category === c.id}
               onClick={() => select(c.id)}
             />
@@ -155,58 +162,71 @@ export function AlgorithmLibrary({ initialCategory }: { initialCategory?: string
               {(activeCategory && COMING_SOON_BLURB[activeCategory]) ?? "Nothing has shipped in this category yet."}
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <button
+              <Button
                 type="button"
                 onClick={() => select("all")}
-                className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-field)] bg-[var(--primary)] px-5 text-sm font-semibold text-[var(--on-primary)] shadow-[var(--shadow-primary)] transition-colors hover:bg-[var(--primary-hover)]"
+                size="lg"
               >
                 Browse what is available
-              </button>
-              <Link
+              </Button>
+              <ButtonLink
                 href="/about#roadmap"
-                className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-field)] border border-[var(--border)] bg-[var(--surface)] px-5 text-sm font-semibold text-[var(--text)] shadow-[var(--shadow-xs)] transition-colors hover:border-[var(--border-strong)]"
+                variant="outline"
+                size="lg"
               >
                 See the roadmap
-              </Link>
+              </ButtonLink>
             </div>
           </div>
         ) : null}
 
         <div className={cn("mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3", comingSoon && "hidden")}>
           {visible.map((a, i) => (
-            <Link
+            <div
               key={a.slug}
-              href={`/algorithms/${a.slug}`}
-              className="group animate-fade-up flex items-start gap-4 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-out-quint)] hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-md)]"
+              className="group animate-fade-up flex flex-col rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-out-quint)] hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-md)]"
               style={{ animationDelay: `${Math.min(i * 35, 350)}ms` }}
             >
-              <span
-                className={cn(
-                  "flex h-[62px] w-[62px] shrink-0 items-center justify-center rounded-[14px] transition-transform duration-200 group-hover:scale-105",
-                  TONE_BY_CATEGORY[a.category] === "mint"
-                    ? "bg-[var(--success-soft)] text-[var(--success)]"
-                    : TONE_BY_CATEGORY[a.category] === "violet"
-                      ? "bg-[var(--violet-soft)] text-[var(--violet)]"
-                      : TONE_BY_CATEGORY[a.category] === "amber"
-                        ? "bg-[var(--warning-soft)] text-[var(--warning)]"
-                        : "bg-[var(--primary-soft)] text-[var(--primary)]",
-                )}
-              >
-                <Icon name={a.icon} className="h-7 w-7" strokeWidth={1.7} />
-              </span>
+              <Link href={`/algorithms/${a.slug}`} className="flex min-w-0 flex-1 items-start gap-4">
+                <span
+                  className={cn(
+                    "flex h-[62px] w-[62px] shrink-0 items-center justify-center rounded-[14px] transition-transform duration-200 group-hover:scale-105",
+                    TONE_BY_CATEGORY[a.category] === "mint"
+                      ? "bg-[var(--success-soft)] text-[var(--success)]"
+                      : TONE_BY_CATEGORY[a.category] === "violet"
+                        ? "bg-[var(--violet-soft)] text-[var(--violet)]"
+                        : TONE_BY_CATEGORY[a.category] === "amber"
+                          ? "bg-[var(--warning-soft)] text-[var(--warning)]"
+                          : "bg-[var(--primary-soft)] text-[var(--primary)]",
+                  )}
+                >
+                  <Icon name={a.icon} className="h-7 w-7" strokeWidth={1.7} />
+                </span>
 
-              <span className="min-w-0 flex-1">
-                <span className="flex items-start justify-between gap-2">
-                  <span className="text-[17px] font-bold tracking-[-0.02em] text-[var(--text)]">{a.name}</span>
-                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-[var(--text-subtle)] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[var(--primary)]" />
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-start justify-between gap-2">
+                    <span className="text-[17px] font-bold tracking-[-0.02em] text-[var(--text)]">{a.name}</span>
+                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-[var(--text-subtle)] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[var(--primary)]" />
+                  </span>
+                  <span className="mt-1 block text-[13.5px] leading-relaxed text-[var(--text-muted)]">{a.tagline}</span>
+                  <span className="mt-3 flex flex-wrap items-center gap-1.5">
+                    <Badge tone={TONE_BY_CATEGORY[a.category] ?? "brand"}>{categoryLabel(a.category)}</Badge>
+                    <Badge tone="neutral">{a.difficulty}</Badge>
+                  </span>
                 </span>
-                <span className="mt-1 block text-[13.5px] leading-relaxed text-[var(--text-muted)]">{a.tagline}</span>
-                <span className="mt-3 flex flex-wrap items-center gap-1.5">
-                  <Badge tone={TONE_BY_CATEGORY[a.category] ?? "brand"}>{categoryLabel(a.category)}</Badge>
-                  <Badge tone="neutral">{a.difficulty}</Badge>
-                </span>
-              </span>
-            </Link>
+              </Link>
+
+              <div className="mt-5 grid grid-cols-2 gap-2 border-t border-[var(--border)] pt-4">
+                <ButtonLink href={`/algorithms/${a.slug}/learn`} variant="secondary" size="sm" className="justify-center">
+                  <BookOpen className="h-4 w-4" />
+                  Learn
+                </ButtonLink>
+                <ButtonLink href={`/visualize/${a.slug}`} size="sm" className="justify-center">
+                  <PlayCircle className="h-4 w-4" />
+                  Visualize
+                </ButtonLink>
+              </div>
+            </div>
           ))}
         </div>
 

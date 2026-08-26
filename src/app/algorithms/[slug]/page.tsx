@@ -17,7 +17,7 @@ import {
 
 import { ALGORITHMS, categoryLabel, getAlgorithm, relatedTo } from "@/lib/algorithms";
 import { Badge, Card } from "@/components/ui/primitives";
-import { ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-compat";
 import { Icon } from "@/components/icon";
 import { MiniPreview } from "@/components/viz/mini-preview";
 

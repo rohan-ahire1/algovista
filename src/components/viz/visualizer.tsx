@@ -22,13 +22,24 @@ import { ALGORITHMS, getAlgorithm } from "@/lib/algorithms";
 import { buildInput, isEditableGraph, resolveGraphSource, usesArrayControls } from "@/lib/engine/input";
 import { defaultCustomGraph } from "@/lib/engine/graph-edit";
 import { MAX_RANDOM_NODES } from "@/lib/engine/graph-gen";
+import { PseudocodePanel } from "@/components/code/pseudocode-panel";
 import { GraphEditor } from "./graph-editor";
+import { VisualizationControlsForm } from "@/components/settings/visualization-controls-form";
 import { useAppStore } from "@/lib/store/app-store";
 import { Card } from "@/components/ui/primitives";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { Button } from "@/components/ui/button-compat";
 import { Select } from "@/components/ui/controls";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Icon } from "@/components/icon";
 import { Legend, Stage } from "./stage";
+import { StepExplainer } from "./step-explainer";
 import { usePlayer, usePlayerKeys } from "./use-player";
 import { cn } from "@/lib/cn";
 
@@ -42,7 +53,21 @@ export function Visualizer({ slug }: { slug: string }) {
   const algorithm = getAlgorithm(slug)!;
   const editable = isEditableGraph(algorithm);
   const [editing, setEditing] = React.useState(false);
+  const [pseudocodeOpen, setPseudocodeOpen] = React.useState(false);
   const workingGraph = resolveGraphSource(settings.graphSource) ?? defaultCustomGraph();
+
+  React.useEffect(() => {
+    const root = document.documentElement;
+    if (pseudocodeOpen) {
+      root.dataset.controlsOpen = "true";
+    } else {
+      delete root.dataset.controlsOpen;
+    }
+
+    return () => {
+      delete root.dataset.controlsOpen;
+    };
+  }, [pseudocodeOpen]);
 
   const frames = React.useMemo(
     () => algorithm.generate(buildInput(algorithm, settings)),
@@ -65,12 +90,6 @@ export function Visualizer({ slug }: { slug: string }) {
     markExplored(algorithm.slug);
   }, [algorithm.slug, markExplored]);
 
-  const stepListRef = React.useRef<HTMLOListElement>(null);
-  React.useEffect(() => {
-    const el = stepListRef.current?.querySelector<HTMLElement>('[data-active="true"]');
-    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [index]);
-
   const speedOptions = [
     { value: "25", label: "0.5x" },
     { value: "45", label: "0.75x" },
@@ -85,8 +104,8 @@ export function Visualizer({ slug }: { slug: string }) {
   const segments = Math.min(total, 12);
 
   return (
-    <div className="mx-auto w-full max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
+    <div className="mx-auto w-full max-w-[1680px] min-w-0 overflow-x-clip px-4 py-6 sm:px-6 lg:px-8">
+      <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
         {/* ------------------------------ stage ------------------------------ */}
         <div className="min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -177,7 +196,8 @@ export function Visualizer({ slug }: { slug: string }) {
               </>
             ) : (
               <>
-                <Stage frame={frame} animation={settings.animation} />
+                <Stage frame={frame} animation={settings.animation} title={frame.title} />
+                <StepExplainer frame={frame} index={index} total={total} />
                 <div className="mt-6">
                   <Legend items={algorithm.legend} />
                 </div>
@@ -190,8 +210,10 @@ export function Visualizer({ slug }: { slug: string }) {
               <Button variant="secondary" size="icon" aria-label="Previous step" onClick={controls.prev} disabled={index === 0}>
                 <ChevronLeft className="h-[18px] w-[18px]" />
               </Button>
-              <button
+              <Button
                 type="button"
+                variant="primary"
+                size="icon"
                 onClick={controls.toggle}
                 aria-label={playing ? "Pause" : atEnd ? "Replay" : "Play"}
                 className="flex h-[62px] w-[62px] items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] shadow-[var(--shadow-primary)] transition-transform duration-200 ease-[var(--ease-out-quint)] hover:scale-105 active:scale-95"
@@ -203,7 +225,7 @@ export function Visualizer({ slug }: { slug: string }) {
                 ) : (
                   <Play className="ml-0.5 h-6 w-6" fill="currentColor" />
                 )}
-              </button>
+              </Button>
               <Button variant="secondary" size="icon" aria-label="Next step" onClick={controls.next} disabled={atEnd}>
                 <ChevronRight className="h-[18px] w-[18px]" />
               </Button>
@@ -228,10 +250,6 @@ export function Visualizer({ slug }: { slug: string }) {
                     Edit graph
                   </Button>
                 ) : null}
-                <ButtonLink href="/settings" variant="ghost" size="sm">
-                  <Sliders className="h-4 w-4" />
-                  Controls
-                </ButtonLink>
               </div>
             </div>
               </>
@@ -239,9 +257,9 @@ export function Visualizer({ slug }: { slug: string }) {
           </Card>
 
           {/* metrics */}
-          <Card className="mt-4 flex flex-wrap items-center gap-y-4 p-4 sm:p-5">
+          <Card className="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-4">
             {algorithm.metrics.map((m) => (
-              <div key={m.key} className="flex min-w-[150px] flex-1 items-center gap-3 border-[var(--border)] px-2 sm:border-r sm:last:border-r-0">
+              <div key={m.key} className="flex min-w-0 items-center gap-3 border-[var(--border)] px-2 sm:border-r sm:last:border-r-0">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] bg-[var(--surface-sunken)] text-[var(--primary)]">
                   <Icon name={m.icon} className="h-[18px] w-[18px]" />
                 </span>
@@ -253,7 +271,7 @@ export function Visualizer({ slug }: { slug: string }) {
                 </span>
               </div>
             ))}
-            <div className="flex min-w-[150px] flex-1 items-center gap-3 border-[var(--border)] px-2 sm:border-r">
+            <div className="flex min-w-0 items-center gap-3 border-[var(--border)] px-2 sm:border-r">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] bg-[var(--surface-sunken)] text-[var(--primary)]">
                 <Icon name="Layers" className="h-[18px] w-[18px]" />
               </span>
@@ -264,7 +282,7 @@ export function Visualizer({ slug }: { slug: string }) {
                 </span>
               </span>
             </div>
-            <div className="flex min-w-[150px] flex-1 items-center gap-3 px-2">
+            <div className="flex min-w-0 items-center gap-3 px-2">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] bg-[var(--surface-sunken)] text-[var(--primary)]">
                 <Icon name="Boxes" className="h-[18px] w-[18px]" />
               </span>
@@ -279,81 +297,18 @@ export function Visualizer({ slug }: { slug: string }) {
         </div>
 
         {/* ---------------------------- right rail --------------------------- */}
-        <aside className="grid content-start gap-4">
-          <Card className="border-[color-mix(in_srgb,var(--primary)_25%,var(--border))] p-5">
-            <p className="flex items-center gap-2 text-[15px] font-bold text-[var(--text)]">
-              <span className="h-2.5 w-2.5 rounded-full bg-[var(--primary)]" />
-              Current Step
-            </p>
-            <div className="mt-3.5 rounded-[var(--radius-field)] bg-[var(--primary-soft)] p-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[14.5px] font-bold text-[var(--primary)]">{frame.title}</span>
-                {frame.chips?.map((c) => (
-                  <span
-                    key={c}
-                    className="rounded-[7px] bg-[var(--surface)] px-2 py-1 text-[11.5px] font-semibold text-[var(--text-muted)]"
-                  >
-                    {c}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-2 text-[13.5px] leading-relaxed text-[var(--text-muted)]">{frame.detail}</p>
-            </div>
-          </Card>
-
+        <aside className="grid min-w-0 content-start gap-4">
           <Card className="p-5">
-            <p className="text-[15px] font-bold text-[var(--text)]">Algorithm Steps</p>
-            <ol ref={stepListRef} className="av-scroll mt-3.5 max-h-[340px] overflow-y-auto pr-1">
-              {frames.map((f, i) => {
-                const done = i < index;
-                const active = i === index;
-                return (
-                  <li
-                    key={i}
-                    data-active={active}
-                    className={cn(
-                      "mb-1 flex items-start gap-3 rounded-[11px] px-3 py-2.5 transition-colors",
-                      active ? "bg-[var(--primary-soft)]" : "hover:bg-[var(--surface-sunken)]",
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => controls.seek(i)}
-                      className="flex flex-1 items-start gap-3 text-left"
-                      aria-current={active ? "step" : undefined}
-                    >
-                      <span
-                        className={cn(
-                          "mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full text-[11px] font-bold",
-                          active
-                            ? "bg-[var(--primary)] text-[var(--on-primary)]"
-                            : done
-                              ? "bg-[var(--success)] text-white"
-                              : "bg-[var(--surface-sunken)] text-[var(--text-subtle)]",
-                        )}
-                      >
-                        {done ? "✓" : i + 1}
-                      </span>
-                      <span className="min-w-0">
-                        <span
-                          className={cn(
-                            "block text-[13.5px] font-semibold leading-snug",
-                            active ? "text-[var(--primary)]" : done ? "text-[var(--text)]" : "text-[var(--text-muted)]",
-                          )}
-                        >
-                          {f.title}
-                        </span>
-                        {active ? (
-                          <span className="mt-0.5 block text-[12.5px] leading-snug text-[var(--text-muted)]">
-                            {f.detail}
-                          </span>
-                        ) : null}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ol>
+            <p className="flex items-center gap-2 text-[15px] font-bold text-[var(--text)]">
+              <Sliders className="h-[17px] w-[17px] text-[var(--primary)]" />
+              Visualization Controls
+            </p>
+            <p className="mt-1.5 text-[12.5px] leading-relaxed text-[var(--text-muted)]">
+              Tune this run without leaving the visualization.
+            </p>
+            <div className="mt-5">
+              <VisualizationControlsForm algorithm={algorithm} />
+            </div>
           </Card>
 
           <Card className="bg-[var(--primary-soft)] p-5">
@@ -364,14 +319,43 @@ export function Visualizer({ slug }: { slug: string }) {
             <p className="mt-2 text-[13.5px] leading-relaxed text-[var(--text-muted)]">{algorithm.summary}</p>
           </Card>
 
-          <Link
-            href={`/algorithms/${algorithm.slug}/code`}
-            className="group flex items-center gap-3 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] px-5 py-4 shadow-[var(--shadow-xs)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+          <Sheet
+            modal={false}
+            open={pseudocodeOpen}
+            onOpenChange={(open) => {
+              setPseudocodeOpen(open);
+            }}
           >
-            <Code2 className="h-[18px] w-[18px] text-[var(--primary)]" />
-            <span className="flex-1 text-[14.5px] font-semibold text-[var(--text)]">View Pseudocode</span>
-            <ChevronRight className="h-4 w-4 text-[var(--text-subtle)] transition-transform group-hover:translate-x-0.5" />
-          </Link>
+            <SheetTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="lg"
+                className="group h-auto w-full justify-start rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] px-5 py-4 text-left text-[var(--text)] shadow-[var(--shadow-xs)] transition-all hover:-translate-y-0.5 hover:bg-[var(--surface)] hover:shadow-[var(--shadow-md)]"
+              >
+                <Code2 className="h-[18px] w-[18px] text-[var(--primary)]" />
+                <span className="flex-1 text-[14.5px] font-semibold">View Pseudocode</span>
+                <ChevronRight className="h-4 w-4 text-[var(--text-subtle)] transition-transform group-hover:translate-x-0.5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              className="av-main-sheet w-[min(100vw,420px)] max-w-none gap-0 p-0"
+              onPointerDownOutside={(event) => event.preventDefault()}
+            >
+              <SheetHeader className="border-b border-[var(--border)] px-5 py-5 pr-14">
+                <SheetTitle className="text-[18px] font-bold text-[var(--text)]">
+                  {algorithm.name} Pseudocode
+                </SheetTitle>
+                <SheetDescription className="text-[13px] leading-relaxed text-[var(--text-muted)]">
+                  Read the logic alongside the live visualization.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="av-scroll min-h-0 flex-1 overflow-y-auto px-5 py-5">
+                <PseudocodePanel code={algorithm.code.pseudocode} />
+              </div>
+            </SheetContent>
+          </Sheet>
 
           <p className="px-1 text-center text-[12px] text-[var(--text-subtle)]">
             Shortcuts: <kbd className="font-semibold">Space</kbd> play/pause · <kbd className="font-semibold">←</kbd>{" "}

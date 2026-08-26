@@ -21,7 +21,8 @@ import { getAlgorithm } from "@/lib/algorithms";
 import { TOTAL_LESSONS } from "@/lib/learning-path";
 import { useAppStore } from "@/lib/store/app-store";
 import { Card, Progress as Bar } from "@/components/ui/primitives";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button-compat";
+import { Input } from "@/components/ui/input";
 import { Icon } from "@/components/icon";
 import { HeroVisual } from "@/components/marketing/hero-visual";
 import { cn } from "@/lib/cn";
@@ -87,12 +88,12 @@ export function DashboardScreen() {
                       setEditing(false);
                     }}
                   >
-                    <input
+                    <Input
                       autoFocus
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
                       aria-label="Your name"
-                      className="h-10 w-[180px] rounded-[10px] border border-[var(--border)] bg-[var(--surface)] px-3 text-[15px] font-semibold text-[var(--text)]"
+                      className="h-10 w-[180px] rounded-[10px] border-[var(--border)] bg-[var(--surface)] px-3 text-[15px] font-semibold text-[var(--text)]"
                     />
                     <Button size="sm" type="submit">
                       Save

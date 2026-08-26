@@ -7,6 +7,7 @@ import { BookOpen, Check, ChevronLeft, ChevronRight, Clock, Flame, Map } from "l
 import { MODULES, TOTAL_LESSONS, completedModules, moduleLessons, moduleProgress } from "@/lib/learning-path";
 import { useAppStore } from "@/lib/store/app-store";
 import { Card, Progress as Bar } from "@/components/ui/primitives";
+import { ButtonLink } from "@/components/ui/button-compat";
 import { Icon } from "@/components/icon";
 import { cn } from "@/lib/cn";
 
@@ -205,13 +206,14 @@ export function LearningPath() {
       </div>
 
       <div className="mt-10 flex flex-col items-center">
-        <Link
+        <ButtonLink
           href="/algorithms"
-          className="inline-flex h-[52px] w-full max-w-[420px] items-center justify-center gap-2.5 rounded-[14px] bg-[var(--primary)] text-[15px] font-semibold text-[var(--on-primary)] shadow-[var(--shadow-primary)] transition-colors hover:bg-[var(--primary-hover)]"
+          size="lg"
+          className="w-full max-w-[420px]"
         >
           <Map className="h-[18px] w-[18px]" />
           View Full Roadmap
-        </Link>
+        </ButtonLink>
         <p className="mt-3 text-[13.5px] text-[var(--text-muted)]">
           {modulesDone} of {MODULES.length} modules complete · see all topics and recommended paths
         </p>

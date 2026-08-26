@@ -5,7 +5,7 @@ import { ArrowRight, Cookie, Keyboard, Layers, ScanEye, Sparkles } from "lucide-
 import { ALGORITHMS, CATEGORIES, COMING_SOON_BLURB, type Category } from "@/lib/algorithms";
 import { LANGUAGES } from "@/lib/engine/algorithm";
 import { Card } from "@/components/ui/primitives";
-import { ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-compat";
 import { Icon } from "@/components/icon";
 
 export const metadata: Metadata = {

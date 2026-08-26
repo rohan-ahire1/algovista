@@ -47,6 +47,13 @@ export function buildInput(algorithm: Algorithm, settings: Settings): AlgoInput 
     case "number":
       return { array: [], n: algorithm.defaultInput?.n ?? Math.max(3, Math.min(8, Math.round(size / 2))) };
 
+    case "knapsack":
+      return {
+        array: [],
+        items: algorithm.defaultInput?.items,
+        capacity: algorithm.defaultInput?.capacity ?? Math.max(8, Math.min(24, size + 4)),
+      };
+
     default:
       return { array: buildArray(size, settings.preset, settings.seed) };
   }
