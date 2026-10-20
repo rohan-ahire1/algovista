@@ -1,41 +1,28 @@
 # AlgoVista
 
-Interactive algorithm visualizer and learning platform. Twelve classic algorithms, each with a
-step-by-step animated run, a written explanation, a worked example, a complexity breakdown,
-implementations in four languages plus pseudocode, and a quiz.
+An interactive algorithm visualizer and learning platform: watch classic algorithms run step by step, read why each
+step happens, then test yourself.
 
-## Running it
+Thirteen algorithms, each with an animated run you can scrub forwards and backwards, a written explanation, a worked
+example, a complexity breakdown, code in Python, JavaScript, Java and C++ plus pseudocode with the current line
+highlighted, and a quiz.
 
-```bash
-pnpm install
-pnpm dev        # http://localhost:3000
-pnpm build      # production build
-pnpm lint
-pnpm verify     # correctness harness for every algorithm (~56k assertions)
-```
+## Features
 
-## How it works
-
-The core idea is that **every algorithm compiles its input into a complete list of frames up
-front** (`src/lib/engine/types.ts`). A frame holds the full visual state, an explanation of why
-that step happened, the metrics at that moment, and the pseudocode line being executed. Because
-the whole timeline exists before playback starts, scrubbing backwards is exact and jumping to any
-step is O(1).
-
-```
-src/
-  lib/
-    engine/         Frame model, input builders, graph presets
-    algorithms/     One file per algorithm: generator + all its content
-    store/          Cookie-backed settings and progress
-    practice.ts     Quiz, drill, exam and generated-challenge builders
-    learning-path.ts, achievements.ts
-  components/
-    viz/            Array / graph / recursion-tree renderers, player, stage
-    ui/             Buttons, cards, sliders, tabs — all built on the token layer
-    learn/ practice/ dashboard/ library/ nav/ marketing/
-  app/              Routes
-```
+- **Step-by-step visualizer** with play, pause, step and scrub controls, a live explanation of each step, running
+  metrics (such as comparisons, swaps or visited nodes) and the matching pseudocode line.
+- **Three renderers cover every algorithm**: an array/bar view (pointers, range brackets, merge buffers), an SVG
+  graph view (directed and weighted, with queue/stack strips) and an SVG recursion-tree view, plus a table view for
+  dynamic programming.
+- **Graph editor for Dijkstra**: add and drag nodes, connect and weight edges, pick the source, and watch the algorithm
+  re-run on every edit. A generator builds random connected graphs of up to 100 nodes.
+- **Learn and practice**: articles per algorithm, a learning path, quizzes, drills, mock exams, generated
+  challenges and achievements.
+- **No accounts**: settings and progress live in two cookies that the server reads, so the right theme and stats are
+  there on first paint.
+- **Light and dark themes** from one set of CSS design tokens.
+- **Correctness harness**: `pnpm verify` runs every algorithm across input sizes and presets and checks the final
+  frame holds the right answer (about 104,000 assertions).
 
 ### Algorithms
 
@@ -45,65 +32,70 @@ src/
 | Searching | Linear, Binary |
 | Graphs | BFS, DFS, Dijkstra, Topological Sort |
 | Recursion | Fibonacci (call tree) |
+| Dynamic Programming | 0/1 Knapsack |
 
-Merge and Quick Sort also appear under Divide & Conquer; Dijkstra also appears under Greedy.
+Merge and Quick Sort also appear under Divide & Conquer; Dijkstra also appears under Greedy. Data Structures is
+listed as coming soon.
 
-Three renderers cover all twelve: an array/bar view (with pointers, range brackets and merge
-buffers), an SVG graph view (directed and weighted variants, plus queue/stack chip strips), and an
-SVG recursion-tree view.
+## Tech stack
+
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Radix UI / shadcn components · Shiki (code
+highlighting) · lucide-react · tsx (verification script)
+
+## How it works
+
+**Every algorithm compiles its input into a complete list of frames up front** (`src/lib/engine/types.ts`). A frame
+holds the full visual state, an explanation of why that step happened, the metrics at that moment and the pseudocode
+line being executed. Because the whole timeline exists before playback starts, scrubbing backwards is exact and
+jumping to any step is O(1).
+
+```
+src/
+  lib/
+    engine/         Frame model, input builders, graph presets, graph editing and generation
+    algorithms/     One file per algorithm: generator + all its content
+    store/          Cookie-backed settings and progress
+    practice.ts     Quiz, drill, exam and generated-challenge builders
+    learning-path.ts, achievements.ts
+  components/
+    viz/            Array / graph / tree / table renderers, player, stage, graph editor
+    ui/             Buttons, cards, sliders, tabs, all built on the token layer
+    learn/ practice/ dashboard/ library/ nav/ marketing/ settings/ code/
+  app/              Routes
+scripts/
+  verify-algorithms.ts   Correctness harness
+```
 
 ### Adding an algorithm
 
-Create `src/lib/algorithms/<slug>.ts` exporting an `Algorithm`, then register it in
-`src/lib/algorithms/index.ts`. The record holds everything the UI needs — metadata, complexity,
-steps, article blocks, code for all five languages, quiz questions, and the `generate` function
-that turns an input into frames. Every page picks its content up from there automatically.
+Create `src/lib/algorithms/<slug>.ts` exporting an `Algorithm`, then register it in `src/lib/algorithms/index.ts`.
+The record holds everything the UI needs: metadata, complexity, steps, article blocks, code for every language, quiz
+questions, and the `generate` function that turns an input into frames. Every page picks its content up from there.
+Run `pnpm verify` afterwards.
 
-Run `pnpm verify` afterwards: the harness runs each generator across sizes and input presets and
-asserts the final frame actually holds the right answer (sorted array, correct shortest-path
-distances, valid topological order, correct Fibonacci value, and so on).
+### Graph editing and cookie-sized graphs
 
-### Editing the graph
+All hand edits go through `src/lib/engine/graph-edit.ts`, which keeps the graph runnable: unique ids, no self-loops
+or duplicate edges, non-negative weights (Dijkstra's precondition) and a source that still exists. `sanitizeGraph`
+repairs anything a stale or hand-edited cookie could contain.
 
-Dijkstra's visualizer has an **Edit graph** mode (`src/components/viz/graph-editor.tsx`). You can add
-nodes by clicking the canvas, drag them to reposition, connect pairs, edit or delete edge weights,
-and pick which node is the source. Every edit re-runs the algorithm immediately.
+Storage is why the two editor modes differ. A hand-built graph is stored in the cookie in full, so it is capped at 26
+nodes / 60 edges. A generated graph is stored as the recipe that produced it (`{nodeCount, density, seed,
+startIndex}`, about 60 bytes) and rebuilt deterministically by `src/lib/engine/graph-gen.ts`, which is what lets it
+reach 100 nodes inside a 4 KB cookie. Generated graphs start from a minimum spanning tree over the node positions and
+are topped up to the requested density, so they are always connected; weights come from the distance between nodes.
+The renderer scales node size, labels and weight chips to the node count so 100 nodes stay readable.
 
-There is also a **Generate random** mode: a node-count slider up to 100, three density settings, and
-a source-node picker (click any node). Generated graphs are built from a minimum spanning tree over
-the node positions and then topped up to the requested average degree, so they are always connected
-and read as networks rather than hairballs. Weights come from the geometric distance between nodes.
+## Run locally
 
-All hand edits go through `src/lib/engine/graph-edit.ts`, which keeps the graph in a state the
-algorithm can always run on: unique ids, no self-loops or duplicate edges, non-negative weights
-(Dijkstra's precondition), and a source that still exists. `sanitizeGraph` repairs anything a stale
-or hand-edited cookie could contain.
+Requires Node.js 20+ and pnpm.
 
-**Storage is the reason the two modes differ.** A hand-built graph is stored in the cookie in full,
-so it is capped at 26 nodes / 60 edges. A generated graph is stored as the *recipe* that produced it
-(`{nodeCount, density, seed, startIndex}`, ~60 bytes) and rebuilt deterministically by
-`src/lib/engine/graph-gen.ts` — which is what lets it reach 100 nodes inside a 4KB cookie. Drawing
-tools therefore switch off above 26 nodes; picking the source still works, because that is part of
-the recipe.
+```bash
+pnpm install
+pnpm dev        # http://localhost:3000
+pnpm build      # production build
+pnpm lint
+pnpm verify     # correctness harness for every algorithm
+```
 
-The renderer scales node radius, label size and per-edge weight chips to the node count
-(`graphScale` in `graph-view.tsx`), so 100 nodes stay legible in the same canvas. Worst case
-(100 nodes, dense) is 272 frames generated in ~11ms.
-
-Disconnected nodes are allowed and flagged, not blocked: Dijkstra correctly leaves them at ∞, and
-the editor explains that rather than preventing it.
-
-`AlgoInput` carries an optional `graph`, so any graph algorithm can accept a custom graph — only
-Dijkstra exposes the editor today (gated by `isEditableGraph` in `src/lib/engine/input.ts`).
-
-### State
-
-There are no accounts. Settings and progress live in two cookies (`av_settings`, `av_progress`)
-which the root layout reads server-side, so the correct theme and stats are present on first paint
-with no hydration flash. Clearing cookies resets everything.
-
-### Theming
-
-All colour, elevation and radius decisions live as CSS custom properties in
-`src/app/globals.css`, defined once for light and once for dark. Components reference the tokens,
-never raw colours, so the dark theme needs no per-component work.
+No environment variables are needed.
