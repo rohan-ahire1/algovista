@@ -2,12 +2,15 @@
   "name": "algovista",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.34.9",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "verify": "tsx scripts/verify-algorithms.ts"
+    "verify": "tsx scripts/verify-algorithms.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -31,6 +34,7 @@
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",
     "tsx": "^4.23.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.12"
   }
 }
